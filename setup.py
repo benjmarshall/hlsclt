@@ -41,6 +41,12 @@ setup(
 
     packages=find_packages(),
 
-    install_requires=[]
+    install_requires=[],
+
+    entry_points = {
+        'console_scripts': ['hlsclt=hlsclt.hlsclt:main']
+    },
+
+    include_package_data=True
 
 )

@@ -44,10 +44,13 @@ def try_delete(item):
 
 def get_vars_from_file(filename):
     import imp
-    f = open(filename)
-    config = imp.load_source('config', '', f)
-    f.close()
-    return config
+    try:
+        with open(filename) as f:
+            config = imp.load_source('config', '', f)
+        return config
+    except OSError:
+        print("Error: No hls_config.py found, please create a config file for your project. For an example config file please see the 'examples' folder within the hlsclt install directory.")
+        sys.exit()
 
 def parse_config_vars(config_loaded, config, errors):
     config_loaded_dict = dict((name, getattr(config_loaded, name)) for name in dir(config_loaded) if not name.startswith('__'))
@@ -105,16 +108,6 @@ def main():
     export_dsp_group.add_argument("-evaluate_dsp", help="perform export for System Generator with build to place and route", action="store_true")
     args = parser.parse_args()
 
-    # Check for clean argument
-    if args.clean:
-        if len(sys.argv) > 2:
-            print("Warning: The 'Clean' option is exclusive. All other arguments will be ignored.")
-        if try_delete(config["project_name"]) + try_delete("run_hls.tcl") + try_delete("vivado_hls.log") == 3:
-            print("Warning: Nothing to remove!")
-        else:
-            print("Cleaned up generated files.")
-        sys.exit()
-
     # Load project specifics from local config file and add to config dict
     config_loaded = get_vars_from_file('hls_config.py')
     errors = []
@@ -123,6 +116,16 @@ def main():
         for err in errors:
             print(err)
         print("Config Errors, exiting...")
+        sys.exit()
+
+    # Check for clean argument
+    if args.clean:
+        if len(sys.argv) > 2:
+            print("Warning: The 'Clean' option is exclusive. All other arguments will be ignored.")
+        if try_delete(config["project_name"]) + try_delete("run_hls.tcl") + try_delete("vivado_hls.log") == 3:
+            print("Warning: Nothing to remove!")
+        else:
+            print("Cleaned up generated files.")
         sys.exit()
 
     # Write out TCL file

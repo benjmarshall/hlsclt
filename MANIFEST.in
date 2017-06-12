@@ -1,0 +1,8 @@
+exclude .gitignore
+prune .cache
+prune .git
+prune build
+prune dist
+recursive-exclude *.egg-info *
+include README.md
+recursive-include examples *
