@@ -3,7 +3,7 @@ A Vivado HLS Command Line Helper Tool.
 
 Current functionality includes flexibly executing the main Vivado HLS build stages and cleaning up generated files. Supports a command line driven development process.
 
-### Requirements
+## Requirements
 Python 3 - tested with python 3.6.1
 
 ## Install
@@ -32,23 +32,27 @@ A recommended directory structure is as follows:
     - testbench.cpp
   - hls_config.py
 
-An example project structure and hls_config.py can be found in the [examples](examples) directory.
+An example project structure and hls_config.py can be found in the [examples](hlsclt/examples) directory.
 
-The tool should be invoked from within the project folder:
+The tool should be invoked from within the project folder, i.e.:
 ```Shell
 cd my_project_name
-hlsclt
+hlsclt -csim
 ```
 
-The tool will read in the configuration form your 'hls_config.py' file and onvoke the Vivado HLS tool.
+The tool will read in the configuration from your 'hls_config.py' file and invoke Vivado HLS to perform the chosen build stages.
 
 All of the tool options can be seen my using the '--help' argument:
 
 ```
 [ben@localhost]$ hlsclt --help
-usage: hlsclt [-h] [-clean] [-keep] [-csim] [-syn] [-cosim | -cosim_debug] [-export_ip | -evaluate_ip] [-export_dsp | -evaluate_dsp]
+usage: hlsclt [-h] [-clean] [-keep] [-csim] [-syn] [-cosim | -cosim_debug] [-export_ip | -evaluate_ip]
+              [-export_dsp | -evaluate_dsp]
 
-Helper tool for using Vivado HLS through the command line. If no arguments are specified then a default run is executed which includes C simulation, C synthesis, Cosimulation and export for both Vivado IP Catalog and System Generator. If any of the run options are specified then only those specified are performed.
+Helper tool for using Vivado HLS through the command line. If no arguments are specified then a default
+run is executed which includes C simulation, C synthesis, Cosimulation and export for both Vivado IP
+Catalog and System Generator. If any of the run options are specified then only those specified are
+performed.
 
 optional arguments:
   -h, --help     show this help message and exit
