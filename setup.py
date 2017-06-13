@@ -47,6 +47,6 @@ setup(
         'console_scripts': ['hlsclt=hlsclt.hlsclt:main']
     },
 
-    include_package_data=True
+    include_package_data=True,
 
 )

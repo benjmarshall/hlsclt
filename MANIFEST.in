@@ -5,4 +5,4 @@ prune build
 prune dist
 recursive-exclude *.egg-info *
 include README.md
-recursive-include examples *
+recursive-include hlsclt/examples *
