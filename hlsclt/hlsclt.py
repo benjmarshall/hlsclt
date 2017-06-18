@@ -6,6 +6,8 @@ Copyright (c) 2017 Ben Marshall
 """
 
 ### Imports ###
+import click
+from ._version import __version__
 import os
 import sys
 import shutil
@@ -13,6 +15,25 @@ import argparse
 from glob import glob
 import contextlib
 from distutils.util import strtobool
+
+### New Click Stuff ###
+@click.group()
+@click.version_option(version=__version__)
+def cli():
+    """Helper tool for using Vivado HLS through the command line. If no arguments are specified then a default run is executed which includes C simulation, C synthesis, Cosimulation and export for both Vivado IP Catalog and System Generator. If any of the run options are specified then only those specified are performed."""
+    pass
+@cli.command('clean',short_help='Remove generated files.')
+def clean():
+    """Removes all Vivado HLS generated files and the generated Tcl build script."""
+    click.echo("Clean Mode")
+@cli.command('build',short_help='Run Vivado HLS build stages.')
+def build():
+    """Runs the Vivado HLS tool and executes the specified build stages."""
+    click.echo("Build Mode")
+@cli.command('report',short_help='Open reports.')
+def report():
+    """Opens the Vivado HLS report for the chosen build stages."""
+    click.echo("Report Mode")
 
 ### Class definitions ###
 class Error(Exception):
@@ -126,7 +147,7 @@ def main():
     export_dsp_group = parser.add_mutually_exclusive_group()
     export_dsp_group.add_argument("-export_dsp", help="perform export for System Generator", action="store_true")
     export_dsp_group.add_argument("-evaluate_dsp", help="perform export for System Generator with build to place and route", action="store_true")
-    args = parser.parse_args()
+    #args = parser.parse_args()
 
     # Load project specifics from local config file and add to config dict
     config_loaded = get_vars_from_file('hls_config.py')
