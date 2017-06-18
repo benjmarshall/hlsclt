@@ -14,7 +14,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
     name='hlsclt',
 
-    version='1.0.0.dev1',
+    version='1.0.0.dev2',
 
     description='A Vivado HLS Command Line Helper Tool',
     long_description=long_description,
