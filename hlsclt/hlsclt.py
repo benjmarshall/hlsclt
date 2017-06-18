@@ -12,6 +12,7 @@ import shutil
 import argparse
 from glob import glob
 import contextlib
+from distutils.util import strtobool
 
 ### Class definitions ###
 class Error(Exception):
@@ -77,6 +78,25 @@ def just_loop_on(input):
     except TypeError:
       yield input
 
+def check_for_syn_results(proj_name, solution_num, top_level_function_name):
+    return_val = False
+    try:
+        with open(proj_name + "/solution" + str(solution_num) + "/syn/report/" + top_level_function_name + "_csynth.rpt"):
+            return_val = True
+    except OSError:
+        pass
+    return return_val
+
+def prompt(query):
+   sys.stdout.write('%s [y/n]: ' % query)
+   val = input()
+   try:
+       ret = strtobool(val)
+   except ValueError:
+       sys.stdout.write('Please answer with a y/n\n')
+       return prompt(query)
+   return ret
+
 def main():
     # Set up default config dictionary
     config = {
@@ -128,6 +148,14 @@ def main():
             print("Cleaned up generated files.")
         sys.exit()
 
+    # Find solution_num
+    paths = glob(config["project_name"] + "/solution*/")
+    solution_num = len(paths)
+    if solution_num == 0:
+        solution_num = 1;
+    elif args.keep:
+        solution_num = solution_num + 1
+
     # Write out TCL file
     file = open("run_hls.tcl","w")
     file.write("open_project " + config["project_name"] + "\n")
@@ -137,14 +165,9 @@ def main():
     for tb_file in config["tb_files"]:
         file.write("add_files -tb " + config["tb_dir_name"] + "/" + tb_file + "\n")
     if args.keep:
-        paths = glob(config["project_name"] + "/solution*/")
-        solution_num = len(paths) + 1
-        if solution_num == 1:
-            file.write("open_solution -reset \"solution1\"" + "\n")
-        else:
-            file.write("open_solution -reset \"solution" + str(solution_num) + "\"" + "\n")
+        file.write("open_solution -reset \"solution" + str(solution_num) + "\"" + "\n")
     else:
-        file.write("open_solution \"solution1\"" + "\n")
+        file.write("open_solution \"solution" + str(solution_num) + "\"" + "\n")
     file.write("set_part \{" + config["part_name"] + "\}" + "\n")
     file.write("create_clock -period " + config["clock_period"] + " -name default" + "\n")
 
@@ -160,6 +183,14 @@ def main():
             file.write("csim_design -clean" + "\n")
         if args.syn:
             file.write("csynth_design" + "\n")
+        # Check for arguments which will require csynth where syn has not been passed as an argument
+        if (not args.syn) and (args.cosim or args.cosim_debug or args.export_ip or args.export_dsp or args.evaluate_ip or args.evaluate_dsp):
+            if not check_for_syn_results(config["project_name"], solution_num, config["top_level_function_name"]):
+                if prompt("C Synthesis has not yet been run but is required for the process(es) you have selected.\nWould you like to add it to this run?"):
+                    print("Adding csynth option.")
+                    file.write("csynth_design" + "\n")
+                else:
+                    print("Ok, watch out for missing synthesis errors!")
         if args.cosim:
             for language in just_loop_on(config["language"]):
                 file.write("cosim_design -O -rtl " + language + "\n")
