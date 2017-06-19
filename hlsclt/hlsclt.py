@@ -118,10 +118,28 @@ def cli(ctx):
 def clean(config):
     """Removes all Vivado HLS generated files and the generated Tcl build script."""
     clean_up_generated_files(config)
-@cli.command('build',short_help='Run Vivado HLS build stages.')
-def build():
+@cli.group(chain=True, invoke_without_command=True, short_help='Run HLS build stages.')
+@click.option('--keep', is_flag=True)
+@click.option('--report', is_flag=True)
+def build(keep,report):
     """Runs the Vivado HLS tool and executes the specified build stages."""
     click.echo("Build Mode")
+    pass
+@build.command('csim')
+@click.pass_obj
+def csim(config):
+    """Runs the Vivado HLS C simulation stage."""
+    click.echo("Csim Mode")
+@build.command('syn')
+@click.pass_obj
+def syn(config):
+    """Runs the Vivado HLS C synthesis stage."""
+    click.echo("Syn Mode")
+@build.command('cosim')
+@click.pass_obj
+def cosim(config):
+    """Runs the Vivado HLS cosimulation stage."""
+    click.echo("Cosim Mode")
 @cli.command('report',short_help='Open reports.')
 def report():
     """Opens the Vivado HLS report for the chosen build stages."""
@@ -129,10 +147,6 @@ def report():
 
 
 ### Support Functions ###
-
-
-
-
 
 
 def just_loop_on(input):
