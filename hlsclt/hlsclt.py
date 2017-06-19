@@ -16,25 +16,6 @@ from glob import glob
 import contextlib
 from distutils.util import strtobool
 
-### New Click Stuff ###
-@click.group()
-@click.version_option(version=__version__)
-def cli():
-    """Helper tool for using Vivado HLS through the command line. If no arguments are specified then a default run is executed which includes C simulation, C synthesis, Cosimulation and export for both Vivado IP Catalog and System Generator. If any of the run options are specified then only those specified are performed."""
-    pass
-@cli.command('clean',short_help='Remove generated files.')
-def clean():
-    """Removes all Vivado HLS generated files and the generated Tcl build script."""
-    click.echo("Clean Mode")
-@cli.command('build',short_help='Run Vivado HLS build stages.')
-def build():
-    """Runs the Vivado HLS tool and executes the specified build stages."""
-    click.echo("Build Mode")
-@cli.command('report',short_help='Open reports.')
-def report():
-    """Opens the Vivado HLS report for the chosen build stages."""
-    click.echo("Report Mode")
-
 ### Class definitions ###
 class Error(Exception):
     """Base class for exceptions in this module."""
@@ -50,29 +31,34 @@ class ConfigError(Error):
     def __init__(self, message):
         self.message = message
 
-### Support Functions ###
-def try_delete(item):
-    try:
-        shutil.rmtree(item)
-    except OSError:
-        try:
-            os.remove(item)
-        except OSError:
-            return 1
-        else:
-            return 0
-    else:
-        return 0
+### New Click Stuff ###
+def abort_if_false(ctx, param, value):
+    if not value:
+        ctx.abort()
+
+def generate_default_config():
+    config = {
+        "project_name" : "proj_" + os.path.relpath(".",".."),
+        "top_level_function_name" : "",
+        "src_dir_name" : "src",
+        "tb_dir_name" : "tb",
+        "src_files" : "",
+        "tb_files" : "",
+        "part_name" : "",
+        "clock_period" : "",
+        "language" : "vhdl",
+    }
+    return config
 
 def get_vars_from_file(filename):
     import imp
     try:
-        with open(filename) as f:
+        with click.open_file(filename) as f:
             config = imp.load_source('config', '', f)
         return config
     except OSError:
         print("Error: No hls_config.py found, please create a config file for your project. For an example config file please see the 'examples' folder within the hlsclt install directory.")
-        sys.exit()
+        raise click.Abort()
 
 def parse_config_vars(config_loaded, config, errors):
     config_loaded_dict = dict((name, getattr(config_loaded, name)) for name in dir(config_loaded) if not name.startswith('__'))
@@ -88,6 +74,66 @@ def parse_config_vars(config_loaded, config, errors):
         except ConfigError as err:
             errors.append(err)
             continue
+
+def try_delete(item):
+    try:
+        shutil.rmtree(item)
+    except OSError:
+        try:
+            os.remove(item)
+        except OSError:
+            return 1
+        else:
+            return 0
+    else:
+        return 0
+
+def clean_up_generated_files(config):
+        if try_delete(config["project_name"]) + try_delete("run_hls.tcl") + try_delete("vivado_hls.log") == 3:
+            click.echo("Warning: Nothing to remove!")
+        else:
+            click.echo("Cleaned up generated files.")
+
+@click.group()
+@click.version_option(version=__version__)
+@click.pass_context
+def cli(ctx):
+    """Helper tool for using Vivado HLS through the command line. If no arguments are specified then a default run is executed which includes C simulation, C synthesis, Cosimulation and export for both Vivado IP Catalog and System Generator. If any of the run options are specified then only those specified are performed."""
+    config = generate_default_config();
+    config_loaded = get_vars_from_file('hls_config.py')
+    errors = []
+    parse_config_vars(config_loaded, config, errors)
+    if len(errors) != 0:
+        for err in errors:
+            print(err)
+        print("Config Errors, exiting...")
+        raise click.Abort()
+    ctx.obj = config
+    pass
+@cli.command('clean',short_help='Remove generated files.')
+@click.option('--yes', is_flag=True, callback=abort_if_false,
+              expose_value=False,
+              prompt='Are you sure you want to remove all generated files?')
+@click.pass_obj
+def clean(config):
+    """Removes all Vivado HLS generated files and the generated Tcl build script."""
+    clean_up_generated_files(config)
+@cli.command('build',short_help='Run Vivado HLS build stages.')
+def build():
+    """Runs the Vivado HLS tool and executes the specified build stages."""
+    click.echo("Build Mode")
+@cli.command('report',short_help='Open reports.')
+def report():
+    """Opens the Vivado HLS report for the chosen build stages."""
+    click.echo("Report Mode")
+
+
+### Support Functions ###
+
+
+
+
+
 
 def just_loop_on(input):
   if isinstance(input, str):
@@ -150,14 +196,7 @@ def main():
     #args = parser.parse_args()
 
     # Load project specifics from local config file and add to config dict
-    config_loaded = get_vars_from_file('hls_config.py')
-    errors = []
-    parse_config_vars(config_loaded, config, errors)
-    if len(errors) != 0:
-        for err in errors:
-            print(err)
-        print("Config Errors, exiting...")
-        sys.exit()
+
 
     # Check for clean argument
     if args.clean:
