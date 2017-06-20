@@ -51,3 +51,14 @@ def parse_config_vars(config_loaded, config, errors):
         except ConfigError as err:
             errors.append(err)
             continue
+
+# Function which loops over any data structure (lists, dicts etc) but not strings
+def just_loop_on(input):
+  if isinstance(input, str):
+    yield input
+  else:
+    try:
+      for item in input:
+        yield item
+    except TypeError:
+      yield input

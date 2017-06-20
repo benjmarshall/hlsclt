@@ -8,6 +8,7 @@ Copyright (c) 2017 Ben Marshall
 import click
 from glob import glob
 import os
+from hlsclt.helper_funcs import just_loop_on
 
 ### Supporting Functions ###
 # Function to find the highest solution number within a HLS project.
@@ -99,17 +100,6 @@ def do_cosim_stuff(ctx,debug):
     else:
         for language in just_loop_on(config["language"]):
             file.write("cosim_design -O -rtl " + language + "\n")
-
-# Function which loops over any data structure (lists, dicts etc) but not strings
-def just_loop_on(input):
-  if isinstance(input, str):
-    yield input
-  else:
-    try:
-      for item in input:
-        yield item
-    except TypeError:
-      yield input
 
 # Function which defines the main actions of the 'export' command.
 def do_export_stuff(ctx,type,evaluate):
