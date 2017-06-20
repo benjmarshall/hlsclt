@@ -11,9 +11,9 @@ from ._version import __version__
 import os
 from .classes import *
 from .helper_funcs import *
-from .clean import clean_commands
-from .build import build_commands
-from .report import report_commands
+from .clean_commands import clean_commands
+from .build_commands import build_commands
+from .report_commands import report_commands
 
 ### Main Click Entry Point ###
 @click.group()
