@@ -8,7 +8,7 @@ Copyright (c) 2017 Ben Marshall
 import click
 import os
 import subprocess
-from hlsclt.helper_funcs import just_loop_on, find_solution_num
+from hlsclt.helper_funcs import find_solution_num
 from hlsclt.report_commands.report_commands import open_report
 
 ### Supporting Functions ###

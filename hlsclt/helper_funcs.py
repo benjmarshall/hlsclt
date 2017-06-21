@@ -52,17 +52,6 @@ def parse_config_vars(config_loaded, config, errors):
             errors.append(err)
             continue
 
-# Function which loops over any data structure (lists, dicts etc) but not strings
-def just_loop_on(input):
-  if isinstance(input, str):
-    yield input
-  else:
-    try:
-      for item in input:
-        yield item
-    except TypeError:
-      yield input
-
 # Function to find the highest solution number within a HLS project.
 def find_solution_num(ctx):
     config = ctx.obj.config

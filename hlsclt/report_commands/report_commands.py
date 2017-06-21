@@ -9,7 +9,7 @@ import click
 import os
 import subprocess
 from glob import glob
-from hlsclt.helper_funcs import just_loop_on, find_solution_num
+from hlsclt.helper_funcs import find_solution_num
 
 ### Supporting Functions ###
 # Function to check if project exists
