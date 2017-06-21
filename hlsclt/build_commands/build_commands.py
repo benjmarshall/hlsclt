@@ -7,7 +7,9 @@ Copyright (c) 2017 Ben Marshall
 ### Imports ###
 import click
 import os
+import subprocess
 from hlsclt.helper_funcs import just_loop_on, find_solution_num
+from hlsclt.report_commands.report_commands import open_report
 
 ### Supporting Functions ###
 # Function to generate the 'pre-amble' within the HLS Tcl build script.
@@ -103,6 +105,16 @@ def do_export_stuff(ctx,type,evaluate):
         if "sysgen" in type:
             file.write("export_design -format sysgen" + "\n")
 
+# Function which defines the actions that occur after a HLS build.
+def do_end_build_stuff(ctx,sub_command_returns,report):
+    # Check for reporting flag
+    if report:
+        if not sub_command_returns:
+            # Must be on the default run, add all stages manually
+            sub_command_returns = ['csim','syn','cosim','export']
+        for report in sub_command_returns:
+            open_report(ctx,report)
+
 ### Click Command Definitions ###
 # Build group entry point
 @click.group(chain=True, invoke_without_command=True, short_help='Run HLS build stages.')
@@ -120,13 +132,21 @@ def build(ctx,keep,report):
 @click.pass_context
 def build_end_callback(ctx,sub_command_returns,keep,report):
     # Catch the case where no subcommands have been issued and offer a default build
-    if not any(sub_command_returns):
+    if not sub_command_returns:
         if click.confirm("No build stages specified, would you like to run a default sequence using all the build stages?", abort=True):
             do_default_build(ctx)
     ctx.obj.file.write("exit" + "\n")
     ctx.obj.file.close()
     # Call the Vivado HLS process
-    os.system("vivado_hls -f run_hls.tcl")
+    hls_processs = subprocess.run(["vivado_hls", "-f", "run_hls.tcl"])
+    # Check return status of the HLS process.
+    if hls_processs.returncode < 0:
+        raise click.Abort()
+    elif hls_processs.returncode > 0:
+        click.echo("Warning: HLS Process returned an error, skipping report opening!")
+        raise click.Abort()
+    else:
+        do_end_build_stuff(ctx,sub_command_returns,report)
 
 # csim subcommand
 @build.command('csim')
@@ -134,7 +154,7 @@ def build_end_callback(ctx,sub_command_returns,keep,report):
 def csim(ctx):
     """Runs the Vivado HLS C simulation stage."""
     do_csim_stuff(ctx)
-    return True
+    return 'csim'
 
 # syn subcommand
 @build.command('syn')
@@ -143,7 +163,7 @@ def syn(ctx):
     """Runs the Vivado HLS C synthesis stage."""
     do_syn_stuff(ctx)
     ctx.obj.syn_command_present = True
-    return True
+    return 'syn'
 
 # cosim subcommand
 @build.command('cosim')
@@ -153,7 +173,7 @@ def cosim(ctx,debug):
     """Runs the Vivado HLS cosimulation stage."""
     syn_lookahead_check(ctx)
     do_cosim_stuff(ctx,debug)
-    return True
+    return 'cosim'
 
 # export subcommand
 @build.command('export')
@@ -164,4 +184,4 @@ def export(ctx, type, evaluate):
     """Runs the Vivado HLS export stage."""
     syn_lookahead_check(ctx)
     do_export_stuff(ctx,type,evaluate)
-    return True
+    return 'export'
