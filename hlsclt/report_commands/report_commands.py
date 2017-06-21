@@ -50,12 +50,20 @@ def gather_project_status(ctx):
     config = ctx.obj.config
     solution_num = ctx.obj.solution_num
     project_status = []
-    if os.path.isfile(config["project_name"] + "/solution" + str(solution_num) + "/csim/report/" + config["top_level_function_name"] + "_csim.log"):
-        project_status.append("csim_done")
+    try:
+        with click.open_file(config["project_name"] + "/solution" + str(solution_num) + "/csim/report/" + config["top_level_function_name"] + "_csim.log") as f:
+            status_line = f.readlines()[-2]
+            if "0 errors" in status_line.lower():
+                project_status.append("csim_pass")
+            elif "fail" in status_line.lower():
+                project_status.append("csim_fail")
+            else:
+                project_status.append("csim_done")
+    except OSError:
+        pass
     if os.path.isfile(config["project_name"] + "/solution" + str(solution_num) + "/syn/report/" + config["top_level_function_name"] + "_csynth.rpt"):
         project_status.append('syn_done')
-    if os.path.isfile(config["project_name"] + "/solution" + str(solution_num) + "/sim/report/" + config["top_level_function_name"] + "_cosim.rpt"):
-        project_status.append('cosim_done')
+    try:
         with click.open_file(config["project_name"] + "/solution" + str(solution_num) + "/sim/report/" + config["top_level_function_name"] + "_cosim.rpt") as f:
             for line in f:
                 if "vhdl" in line.lower():
@@ -68,6 +76,9 @@ def gather_project_status(ctx):
                         project_status.append('cosim_verilog_pass')
                     elif "fail" in line.lower():
                         project_status.append('cosim_verilog_fail')
+            project_status.append('cosim_done')
+    except OSError:
+        pass
     if os.path.isdir(config["project_name"] + "/solution" + str(solution_num) + "/impl/ip"):
         project_status.append('export_ip_done')
     if os.path.isdir(config["project_name"] + "/solution" + str(solution_num) + "/impl/sysgen"):
@@ -83,8 +94,24 @@ def gather_project_status(ctx):
 
 # Function for printing out the project status
 def print_project_status(ctx):
+    config = ctx.obj.config
+    solution_num = ctx.obj.solution_num
     project_status = gather_project_status(ctx)
-    click.echo(project_status)
+    click.secho("Project Details", bold=True)
+    click.echo("  Project Name: " + config["project_name"])
+    click.echo("  Number of solutions generated: " + str(solution_num))
+    click.echo("  Latest Solution Folder: '" + config["project_name"] + "/solution" + str(solution_num) + "'")
+    click.secho("Build Status", bold=True)
+    click.echo("  C Simulation: " + (click.style("Pass", fg='green') if "csim_pass" in project_status else (click.style("Fail", fg='red') if "csim_fail" in project_status else (click.style("Run (Can't get status)", fg='yellow') if "csim_done" in project_status else click.style("Not Run", fg='yellow')))))
+    click.echo("  C Synthesis:  " + (click.style("Run", fg='green') if "syn_done" in project_status else click.style("Not Run", fg='yellow')))
+    click.echo("  Cosimulation: " + (click.style("Run", fg='green') if "cosim_done" in project_status else click.style("Not Run", fg='yellow')))
+    click.echo("    VHDL:         " + (click.style("Pass", fg='green') if "cosim_vhdl_pass" in project_status else (click.style("Fail", fg='red') if "cosim_vhdl_fail" in project_status else click.style("Not Run", fg='yellow'))))
+    click.echo("    Verilog:      " + (click.style("Pass", fg='green') if "cosim_verilog_pass" in project_status else (click.style("Fail", fg='red') if "cosim_verilog_fail" in project_status else click.style("Not Run", fg='yellow'))))
+    click.echo("  Export:" )
+    click.echo("    IP Catalog:       " + (click.style("Run", fg='green') if "export_ip_done" in project_status else click.style("Not Run", fg='yellow')))
+    click.echo("    System Generator: " + (click.style("Run", fg='green') if "export_sysgen_done" in project_status else click.style("Not Run", fg='yellow')))
+    click.echo("    VHDL Evaluate:    " + (click.style("Run", fg='green') if "evaluate_vhdl_done" in project_status else click.style("Not Run", fg='yellow')))
+    click.echo("    Verilog Evaluate: " + (click.style("Run", fg='green') if "evaluate_verilog_done" in project_status else click.style("Not Run", fg='yellow')))
 
 
 ### Click Command Definitions ###
