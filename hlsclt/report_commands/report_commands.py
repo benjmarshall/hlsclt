@@ -56,19 +56,18 @@ def gather_project_status(ctx):
         project_status.append('syn_done')
     if os.path.isfile(config["project_name"] + "/solution" + str(solution_num) + "/sim/report/" + config["top_level_function_name"] + "_cosim.rpt"):
         project_status.append('cosim_done')
-        cache = []
-        for line in click.open_file(config["project_name"] + "/solution" + str(solution_num) + "/sim/report/" + config["top_level_function_name"] + "_cosim.rpt"):
-            cache.append(line)
-            if "vhdl" in cache[line].lower():
-                if "pass" in cache[line].lower():
-                    project_status.append('cosim_vhdl_pass')
-                elif "fail" in cache[line].lower():
-                    project_status.append('cosim_vhdl_fail')
-            if "verilog" in cache[line].lower():
-                if "pass" in cache[line].lower():
-                    project_status.append('cosim_verilog_pass')
-                elif "fail" in cache[line].lower():
-                    project_status.append('cosim_verilog_fail')
+        with click.open_file(config["project_name"] + "/solution" + str(solution_num) + "/sim/report/" + config["top_level_function_name"] + "_cosim.rpt") as f:
+            for line in f:
+                if "vhdl" in line.lower():
+                    if "pass" in line.lower():
+                        project_status.append('cosim_vhdl_pass')
+                    elif "fail" in line.lower():
+                        project_status.append('cosim_vhdl_fail')
+                if "verilog" in line.lower():
+                    if "pass" in line.lower():
+                        project_status.append('cosim_verilog_pass')
+                    elif "fail" in line.lower():
+                        project_status.append('cosim_verilog_fail')
     if os.path.isdir(config["project_name"] + "/solution" + str(solution_num) + "/impl/ip"):
         project_status.append('export_ip_done')
     if os.path.isdir(config["project_name"] + "/solution" + str(solution_num) + "/impl/sysgen"):
