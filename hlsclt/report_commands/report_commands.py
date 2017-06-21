@@ -116,7 +116,7 @@ def print_project_status(ctx):
 @click.command('report', short_help='Open reports.')
 @click.option('-s', '--stage', required=True, multiple=True,
                 type=click.Choice(['csim','syn','cosim','export']),
-                help='Which build stage to open the report for. Multiple occurances accepted')
+                help='Which build stage to open the report for. Multiple occurences accepted')
 @click.pass_context
 def report(ctx,stage):
     """Opens the Vivado HLS report for the chosen build stages."""

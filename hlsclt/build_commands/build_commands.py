@@ -173,7 +173,7 @@ def cosim(ctx,debug):
 
 # export subcommand
 @build.command('export')
-@click.option('-t', '--type',  required=True, multiple=True, type=click.Choice(['ip','sysgen']), help='Specify an export type, Vivado IP Catalog or System Generator. Accepts multiple occurances.')
+@click.option('-t', '--type',  required=True, multiple=True, type=click.Choice(['ip','sysgen']), help='Specify an export type, Vivado IP Catalog or System Generator. Accepts multiple occurences.')
 @click.option('-e', '--evaluate', is_flag=True, help='Runs Vivado synthesis and place and route for the generated export.')
 @click.pass_context
 def export(ctx, type, evaluate):
