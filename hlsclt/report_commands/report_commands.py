@@ -7,7 +7,7 @@ Copyright (c) 2017 Ben Marshall
 ### Imports ###
 import click
 import os
-from hlsclt.helper_funcs import just_loop_on
+from hlsclt.helper_funcs import just_loop_on, find_solution_num
 
 ### Supporting Functions ###
 # Function for opening reports.
@@ -25,7 +25,7 @@ def open_report(ctx,report):
             report_files.append(config["project_name"] + "/solution" + str(solution_num) + "/sim/report/" + config["language"] + "/" + config["top_level_function_name"] + ".log")
     elif report == 'export':
         for language in just_loop_on(config["language"]):
-            report_files.append(config["project_name"] + "/solution" + str(solution_num) + "/sim/report/" + config["language"] + "/" + config["top_level_function_name"] + "_export.rpt")
+            report_files.append(config["project_name"] + "/solution" + str(solution_num) + "/impl/report/" + config["language"] + "/" + config["top_level_function_name"] + "_export.rpt")
     for file in report_files:
         return_val = os.system('xdg-open ' + file + ' >/dev/null 2>&1')
         if return_val != 0:
@@ -41,5 +41,6 @@ def open_report(ctx,report):
 @click.pass_context
 def report(ctx,stage):
     """Opens the Vivado HLS report for the chosen build stages."""
+    ctx.obj.solution_num = find_solution_num(ctx)
     for report in stage:
         open_report(ctx,report)

@@ -8,9 +8,9 @@ Copyright (c) 2017 Ben Marshall
 import click
 import os
 import imp
+from glob import glob
 
 ### Function Definitions ###
-
 # Function to generate the default config dicttionary
 def generate_default_config():
     config = {
@@ -62,3 +62,20 @@ def just_loop_on(input):
         yield item
     except TypeError:
       yield input
+
+# Function to find the highest solution number within a HLS project.
+def find_solution_num(ctx):
+    config = ctx.obj.config
+    # Seach for solution folders
+    paths = glob(config["project_name"] + "/solution*/")
+    solution_num = len(paths)
+    # First solution is always 1.
+    if solution_num == 0:
+        solution_num = 1;
+    # If keep argument is specified we are starting a new solution.
+    try:
+        if ctx.params["keep"]:
+            solution_num = solution_num + 1
+    except KeyError:
+        pass
+    return solution_num

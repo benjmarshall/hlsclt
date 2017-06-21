@@ -6,25 +6,10 @@ Copyright (c) 2017 Ben Marshall
 
 ### Imports ###
 import click
-from glob import glob
 import os
-from hlsclt.helper_funcs import just_loop_on
+from hlsclt.helper_funcs import just_loop_on, find_solution_num
 
 ### Supporting Functions ###
-# Function to find the highest solution number within a HLS project.
-def find_solution_num(ctx):
-    config = ctx.obj.config
-    # Seach for solution folders
-    paths = glob(config["project_name"] + "/solution*/")
-    solution_num = len(paths)
-    # First solution is always 1.
-    if solution_num == 0:
-        solution_num = 1;
-    # If keep argument is specified we are starting a new solution.
-    elif ctx.params["keep"]:
-        solution_num = solution_num + 1
-    return solution_num
-
 # Function to generate the 'pre-amble' within the HLS Tcl build script.
 def do_start_build_stuff(ctx):
     config = ctx.obj.config
