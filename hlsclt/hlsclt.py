@@ -6,129 +6,23 @@ Copyright (c) 2017 Ben Marshall
 """
 
 ### Imports ###
+import click
+from ._version import __version__
 import os
-import sys
-import shutil
-import argparse
-from glob import glob
-import contextlib
-from distutils.util import strtobool
+from .classes import *
+from .helper_funcs import *
+from .clean_commands import clean_commands
+from .build_commands import build_commands
+from .report_commands import report_commands
 
-### Class definitions ###
-class Error(Exception):
-    """Base class for exceptions in this module."""
-    pass
-
-class ConfigError(Error):
-    """Exception raised for options not defined in config.
-
-    Attributes:
-        message -- explanation of the error
-    """
-
-    def __init__(self, message):
-        self.message = message
-
-### Support Functions ###
-def try_delete(item):
-    try:
-        shutil.rmtree(item)
-    except OSError:
-        try:
-            os.remove(item)
-        except OSError:
-            return 1
-        else:
-            return 0
-    else:
-        return 0
-
-def get_vars_from_file(filename):
-    import imp
-    try:
-        with open(filename) as f:
-            config = imp.load_source('config', '', f)
-        return config
-    except OSError:
-        print("Error: No hls_config.py found, please create a config file for your project. For an example config file please see the 'examples' folder within the hlsclt install directory.")
-        sys.exit()
-
-def parse_config_vars(config_loaded, config, errors):
-    config_loaded_dict = dict((name, getattr(config_loaded, name)) for name in dir(config_loaded) if not name.startswith('__'))
-    config_loaded_set = set(config_loaded_dict)
-    config_set = set(config)
-    options_defined = config_loaded_set.intersection(config_set)
-    for name in config:
-        if str(name) in options_defined:
-            config[name] = config_loaded_dict[name]
-        try:
-            if not config[name]:
-                raise ConfigError("Error: " + name + " is not defined in config file. No default exists, please define a value in the config file.")
-        except ConfigError as err:
-            errors.append(err)
-            continue
-
-def just_loop_on(input):
-  if isinstance(input, str):
-    yield input
-  else:
-    try:
-      for item in input:
-        yield item
-    except TypeError:
-      yield input
-
-def check_for_syn_results(proj_name, solution_num, top_level_function_name):
-    return_val = False
-    try:
-        with open(proj_name + "/solution" + str(solution_num) + "/syn/report/" + top_level_function_name + "_csynth.rpt"):
-            return_val = True
-    except OSError:
-        pass
-    return return_val
-
-def prompt(query):
-   sys.stdout.write('%s [y/n]: ' % query)
-   val = input()
-   try:
-       ret = strtobool(val)
-   except ValueError:
-       sys.stdout.write('Please answer with a y/n\n')
-       return prompt(query)
-   return ret
-
-def main():
-    # Set up default config dictionary
-    config = {
-        "project_name" : "proj_" + os.path.relpath(".",".."),
-        "top_level_function_name" : "",
-        "src_dir_name" : "src",
-        "tb_dir_name" : "tb",
-        "src_files" : "",
-        "tb_files" : "",
-        "part_name" : "",
-        "clock_period" : "",
-        "language" : "vhdl",
-    }
-
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description="Helper tool for using Vivado HLS through the command line. If no arguments are specified then a default run is executed which includes C simulation, C synthesis, Cosimulation and export for both Vivado IP Catalog and System Generator. If any of the run options are specified then only those specified are performed.")
-    parser.add_argument("-clean", help="remove all Vivado HLS generated files", action="store_true")
-    parser.add_argument("-keep", help="keep all previous solution and generate a new one", action="store_true")
-    parser.add_argument("-csim", help="perform C simulation stage", action="store_true")
-    parser.add_argument("-syn", help="perform C synthesis stage", action="store_true")
-    cosim_group = parser.add_mutually_exclusive_group()
-    cosim_group.add_argument("-cosim", help="perform cosimulation", action="store_true")
-    cosim_group.add_argument("-cosim_debug", help="perform cosimulation with debug logging", action="store_true")
-    export_ip_group = parser.add_mutually_exclusive_group()
-    export_ip_group.add_argument("-export_ip", help="perform export for Vivado IP Catalog", action="store_true")
-    export_ip_group.add_argument("-evaluate_ip", help="perform export for Vivado IP Catalog with build to place and route", action="store_true")
-    export_dsp_group = parser.add_mutually_exclusive_group()
-    export_dsp_group.add_argument("-export_dsp", help="perform export for System Generator", action="store_true")
-    export_dsp_group.add_argument("-evaluate_dsp", help="perform export for System Generator with build to place and route", action="store_true")
-    args = parser.parse_args()
-
-    # Load project specifics from local config file and add to config dict
+### Main Click Entry Point ###
+@click.group()
+@click.version_option(version=__version__)
+@click.pass_context
+def cli(ctx):
+    """Helper tool for using Vivado HLS through the command line. If no arguments are specified then a default run is executed which includes C simulation, C synthesis, Cosimulation and export for both Vivado IP Catalog and System Generator. If any of the run options are specified then only those specified are performed."""
+    # Generate a default config dict and then load in the local config file.
+    config = generate_default_config();
     config_loaded = get_vars_from_file('hls_config.py')
     errors = []
     parse_config_vars(config_loaded, config, errors)
@@ -136,81 +30,15 @@ def main():
         for err in errors:
             print(err)
         print("Config Errors, exiting...")
-        sys.exit()
+        raise click.Abort()
+    # Store the loaded config in an object within the Click context so it is available to all commands.
+    obj = hlsclt_internal_object(config)
+    ctx.obj = obj
+    pass
 
-    # Check for clean argument
-    if args.clean:
-        if len(sys.argv) > 2:
-            print("Warning: The 'Clean' option is exclusive. All other arguments will be ignored.")
-        if try_delete(config["project_name"]) + try_delete("run_hls.tcl") + try_delete("vivado_hls.log") == 3:
-            print("Warning: Nothing to remove!")
-        else:
-            print("Cleaned up generated files.")
-        sys.exit()
-
-    # Find solution_num
-    paths = glob(config["project_name"] + "/solution*/")
-    solution_num = len(paths)
-    if solution_num == 0:
-        solution_num = 1;
-    elif args.keep:
-        solution_num = solution_num + 1
-
-    # Write out TCL file
-    file = open("run_hls.tcl","w")
-    file.write("open_project " + config["project_name"] + "\n")
-    file.write("set_top " + config["top_level_function_name"] + "\n")
-    for src_file in config["src_files"]:
-        file.write("add_files " + config["src_dir_name"] + "/" + src_file + "\n")
-    for tb_file in config["tb_files"]:
-        file.write("add_files -tb " + config["tb_dir_name"] + "/" + tb_file + "\n")
-    if args.keep:
-        file.write("open_solution -reset \"solution" + str(solution_num) + "\"" + "\n")
-    else:
-        file.write("open_solution \"solution" + str(solution_num) + "\"" + "\n")
-    file.write("set_part \{" + config["part_name"] + "\}" + "\n")
-    file.write("create_clock -period " + config["clock_period"] + " -name default" + "\n")
-
-    if not(args.csim or args.syn or args.cosim or args.cosim_debug or args.export_ip or args.export_dsp or args.evaluate_ip or args.evaluate_dsp):
-        file.write("csim_design -clean" + "\n")
-        file.write("csynth_design" + "\n")
-        file.write("cosim_design -O -rtl " + config["language"] + "\n")
-        file.write("export_design -format ip_catalog" + "\n")
-        file.write("export_design -format sysgen" + "\n")
-        file.write("exit" + "\n")
-    else:
-        if args.csim:
-            file.write("csim_design -clean" + "\n")
-        if args.syn:
-            file.write("csynth_design" + "\n")
-        # Check for arguments which will require csynth where syn has not been passed as an argument
-        if (not args.syn) and (args.cosim or args.cosim_debug or args.export_ip or args.export_dsp or args.evaluate_ip or args.evaluate_dsp):
-            if not check_for_syn_results(config["project_name"], solution_num, config["top_level_function_name"]):
-                if prompt("C Synthesis has not yet been run but is required for the process(es) you have selected.\nWould you like to add it to this run?"):
-                    print("Adding csynth option.")
-                    file.write("csynth_design" + "\n")
-                else:
-                    print("Ok, watch out for missing synthesis errors!")
-        if args.cosim:
-            for language in just_loop_on(config["language"]):
-                file.write("cosim_design -O -rtl " + language + "\n")
-        if args.cosim_debug:
-            for language in just_loop_on(config["language"]):
-                file.write("cosim_design -rtl " + language + " -trace_level all" + "\n")
-        if args.export_dsp:
-            file.write("export_design -format ip_catalog" + "\n")
-        if args.export_ip:
-            file.write("export_design -format sysgen" + "\n")
-        if args.evaluate_dsp:
-            for language in just_loop_on(config["language"]):
-                file.write("export_design -format ip_catalog -evaluate " + language + "\n")
-        if args.evaluate_ip:
-            for language in just_loop_on(config["language"]):
-                file.write("export_design -format sysgen -evaluate " + language + "\n")
-    file.write("exit")
-    file.close()
-
-    # Call the Vivado HLS process
-    os.system("vivado_hls -f run_hls.tcl")
-
-if __name__ == "__main__": main()
+# Add Click Sub Commands
+cli.add_command(clean_commands.clean)
+cli.add_command(build_commands.build)
+cli.add_command(report_commands.report)
+cli.add_command(report_commands.open_gui)
+cli.add_command(report_commands.status)
