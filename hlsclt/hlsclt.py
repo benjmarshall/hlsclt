@@ -40,3 +40,4 @@ def cli(ctx):
 cli.add_command(clean_commands.clean)
 cli.add_command(build_commands.build)
 cli.add_command(report_commands.report)
+cli.add_command(report_commands.open_gui)
