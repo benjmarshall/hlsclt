@@ -8,7 +8,7 @@ Copyright (c) 2017 Ben Marshall
 import click
 import os
 import subprocess
-from hlsclt.helper_funcs import just_loop_on, find_solution_num
+from hlsclt.helper_funcs import find_solution_num
 from hlsclt.report_commands.report_commands import open_report
 
 ### Supporting Functions ###
@@ -82,11 +82,9 @@ def do_cosim_stuff(ctx,debug):
     config = ctx.obj.config
     file = ctx.obj.file
     if debug:
-        for language in just_loop_on(config["language"]):
-            file.write("cosim_design -rtl " + language + " -trace_level all" + "\n")
+        file.write("cosim_design -rtl " + config["language"] + " -trace_level all" + "\n")
     else:
-        for language in just_loop_on(config["language"]):
-            file.write("cosim_design -O -rtl " + language + "\n")
+        file.write("cosim_design -O -rtl " + config["language"] + "\n")
 
 # Function which defines the main actions of the 'export' command.
 def do_export_stuff(ctx,type,evaluate):
@@ -94,11 +92,9 @@ def do_export_stuff(ctx,type,evaluate):
     file = ctx.obj.file
     if evaluate:
         if "ip" in type:
-            for language in just_loop_on(config["language"]):
-                file.write("export_design -format ip_catalog -evaluate " + language + "\n")
+            file.write("export_design -format ip_catalog -evaluate " + config["language"] + "\n")
         if "sysgen" in type:
-            for language in just_loop_on(config["language"]):
-                file.write("export_design -format sysgen -evaluate " + language + "\n")
+            file.write("export_design -format sysgen -evaluate " + config["language"] + "\n")
     else:
         if "ip" in type:
             file.write("export_design -format ip_catalog" + "\n")
