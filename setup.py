@@ -11,10 +11,15 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+# Get the version number
+version = {}
+with open("hlsclt/_version.py") as fp:
+    exec(fp.read(), version)
+
 setup(
     name='hlsclt',
 
-    version='1.0.0.dev2',
+    version=version['__version__'],
 
     description='A Vivado HLS Command Line Helper Tool',
     long_description=long_description,
@@ -34,17 +39,18 @@ setup(
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3.6'
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 2.7'
     ],
 
     keywords='xilinx vivado development',
 
     packages=find_packages(),
 
-    install_requires=[],
+    install_requires=['Click'],
 
     entry_points = {
-        'console_scripts': ['hlsclt=hlsclt.hlsclt:main']
+        'console_scripts': ['hlsclt=hlsclt.hlsclt:cli']
     },
 
     include_package_data=True,
