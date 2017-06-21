@@ -2,7 +2,7 @@
 
 A Vivado HLS Command Line Helper Tool.
 
-Supports a command line driven development process, which increases the performance of the HLS tool and massively increases compatibility with source control tools to provide an increase in productivity.
+Supports a command line driven development process, which increases the performance of the HLS tool and aids compatibility with source control tools, in order achieve an increase in productivity.
 
 ## Features
 - Flexibly execute any of the Vivado HLS build stages
@@ -13,22 +13,15 @@ Supports a command line driven development process, which increases the performa
 
 ## Requirements
 - Python 2 or 3
-    - Tested with 3.6.1 and 2.7.5
+    - Tested with and 2.7.5 and 3.6.1
 - Vivado HLS
   - Tested with Vivado HLS 2017.1
 
 ## Install
-Easy installation:
 ```Shell
 pip install hlsclt
 ```
-
-Manual installation:
-```Shell
-git clone https://github.com/benjmarshall/hlsclt.git
-sudo cp ./hlsclt/hlsclt/hlsclt.py /usr/local/bin/hlsclt
-sudo chmod +x /usr/local/bin/hlsclt
-```
+Depends on [Click](https://pypi.python.org/pypi/click) which will be installed automatically by pip.
 
 ## Usage
 ### Quickstart
@@ -44,24 +37,23 @@ A recommended directory structure is as follows:
     - testbench.cpp
   - hls_config.py
 
-An example project structure and hls_config.py can be found in the [examples](hlsclt/examples) directory. A full guide for setting a config.py can be seen in the [Project Config](#project-config) section.
+An example project structure and hls_config.py can be found in the [examples](hlsclt/examples) directory. A full guide for setting a config.py can be seen in the [Project Config](#project-configuration) section.
 
 The tool should be invoked from within the project folder, i.e. :
-```
+```Shell
 cd my_project_name
 hlsclt build csim
 ```
 
 The tool will read in the configuration from your 'hls_config.py' file and invoke Vivado HLS to perform the chosen build stages.
 
-All of the tool options can be seen by using the '--help' argument:
+All of the tools commands and options can be seen by using the '--help' argument:
 
 ```
 [ben@localhost]$ hlsclt --help
 Usage: hlsclt [OPTIONS] COMMAND [ARGS]...
 
   Helper tool for using Vivado HLS through the command line. If no arguments
-
   are specified then a default run is executed which includes C simulation,
   C synthesis, Cosimulation and export for both Vivado IP Catalog and System
   Generator. If any of the run options are specified then only those
@@ -80,12 +72,11 @@ Commands:
 ```
 
 ### Nested Commands
-The tool is built using 'nested' commands (like git for example), where the main command 'hlsclt' has a group of subcommands, some of which in turn have subcommands. The 'status' command is a simple example of single level of nesting:
+The tool is built using the concept of 'nested' commands (like git for example), where the main command 'hlsclt' has a group of subcommands, some of which in turn have subcommands. The 'status' command is a simple example of single level of nesting:
 
 ```
 [ben@localhost]$ hlsclt status
 Project Details
-
   Project Name: proj_simple_adder
   Number of solutions generated: 1
   Latest Solution Folder: 'proj_simple_adder/solution1'
@@ -123,8 +114,8 @@ Options:
   --help                  Show this message and exit.
 ```
 
-### Project Config
-Each Vivado HLS project requires a 'config.py' file in order to be used hlsclt. This file contains all of the information required by Vivado HLS and hlsclt to perform build operations for your project. The file uses basic python syntax to specify the configuration in a parsable format. The full list of available configuration options is shown below:
+### Project Configuration
+Each Vivado HLS project requires a 'config.py' file in order to use hlsclt. This file contains all of the information required by Vivado HLS and hlsclt to perform build operations for your project. The file uses basic python syntax to specify the configuration in a parsable format. The full list of available configuration options is shown below:
 
 |Configuration Item | Variable Name         | Valid Options                  | Required |
 |-------------------|-----------------------|--------------------------------|----------|
