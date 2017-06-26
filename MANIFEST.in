@@ -4,5 +4,6 @@ prune .git
 prune build
 prune dist
 recursive-exclude *.egg-info *
+recursive-exclude *__pycahce__ *
 include README.md
 recursive-include hlsclt/examples *
