@@ -20,8 +20,12 @@ def do_start_build_stuff(ctx):
         file = click.open_file("run_hls.tcl","w")
         file.write("open_project " + config["project_name"] + "\n")
         file.write("set_top " + config["top_level_function_name"] + "\n")
+        if config["cflags"] != "":
+            cf = " -cflags \"%s\"" % config["cflags"]
+        else:
+            cf = ""
         for src_file in config["src_files"]:
-            file.write("add_files " + config["src_dir_name"] + "/" + src_file + "\n")
+            file.write("add_files " + config["src_dir_name"] + "/" + src_file + cf + "\n")
         for tb_file in config["tb_files"]:
             file.write("add_files -tb " + config["tb_dir_name"] + "/" + tb_file + "\n")
         if ctx.params['keep']:
@@ -134,7 +138,7 @@ def build_end_callback(ctx,sub_command_returns,keep,report):
     ctx.obj.file.write("exit" + "\n")
     ctx.obj.file.close()
     # Call the Vivado HLS process
-    hls_processs = subprocess.run(["vivado_hls", "-f", "run_hls.tcl"])
+    hls_processs = subprocess.run(["vivado_hls", "-f", "run_hls.tcl"],shell=True)
     # Check return status of the HLS process.
     if hls_processs.returncode < 0:
         raise click.Abort()

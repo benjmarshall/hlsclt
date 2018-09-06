@@ -18,6 +18,7 @@ def generate_default_config():
         "top_level_function_name" : "",
         "src_dir_name" : "src",
         "tb_dir_name" : "tb",
+        "cflags": "",
         "src_files" : "",
         "tb_files" : "",
         "part_name" : "",
