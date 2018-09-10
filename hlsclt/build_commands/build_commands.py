@@ -43,7 +43,7 @@ def do_start_build_stuff(ctx):
 def do_default_build(ctx):
     config = ctx.obj.config
     file = ctx.obj.file
-    file.write("csim_design -clean" + "\n")
+    file.write("csim_design -clean" + (" -compiler clang" if config["compiler"] == "clang" else "") + " \n")
     file.write("csynth_design" + "\n")
     file.write("cosim_design -O -rtl " + config["language"] + "\n")
     file.write("export_design -format ip_catalog" + "\n")
@@ -52,7 +52,8 @@ def do_default_build(ctx):
 # Function which defines the main actions of the 'csim' command.
 def do_csim_stuff(ctx):
     file = ctx.obj.file
-    file.write("csim_design -clean" + "\n")
+    config = ctx.obj.config
+    file.write("csim_design -clean" + (" -compiler clang" if config["compiler"] == "clang" else "") + "\n")
 
 # Function which defines the main actions of the 'syn' command.
 def do_syn_stuff(ctx):

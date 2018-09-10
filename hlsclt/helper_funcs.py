@@ -20,6 +20,7 @@ def generate_default_config():
         "tb_dir_name" : "tb",
         "cflags": "",
         "src_files" : "",
+        "compiler": "",
         "tb_files" : "",
         "part_name" : "",
         "clock_period" : "",
