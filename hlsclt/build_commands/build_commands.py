@@ -20,7 +20,7 @@ def do_start_build_stuff(ctx):
         file = click.open_file("run_hls.tcl","w")
         file.write("open_project " + config["project_name"] + "\n")
         file.write("set_top " + config["top_level_function_name"] + "\n")
-        if config["cflags"] != "":
+        if config.get("cflags","") != "":
             cf = " -cflags \"%s\"" % config["cflags"]
         else:
             cf = ""
@@ -43,7 +43,7 @@ def do_start_build_stuff(ctx):
 def do_default_build(ctx):
     config = ctx.obj.config
     file = ctx.obj.file
-    file.write("csim_design -clean" + (" -compiler clang" if config["compiler"] == "clang" else "") + " \n")
+    file.write("csim_design -clean" + (" -compiler clang" if config.get("compiler","") == "clang" else "") + " \n")
     file.write("csynth_design" + "\n")
     file.write("cosim_design -O -rtl " + config["language"] + "\n")
     file.write("export_design -format ip_catalog" + "\n")
@@ -53,7 +53,7 @@ def do_default_build(ctx):
 def do_csim_stuff(ctx):
     file = ctx.obj.file
     config = ctx.obj.config
-    file.write("csim_design -clean" + (" -compiler clang" if config["compiler"] == "clang" else "") + "\n")
+    file.write("csim_design -clean" + (" -compiler clang" if config.get("compiler","") == "clang" else "") + "\n")
 
 # Function which defines the main actions of the 'syn' command.
 def do_syn_stuff(ctx):
