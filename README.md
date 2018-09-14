@@ -128,6 +128,7 @@ Each Vivado HLS project requires a 'config.py' file in order to use hlsclt. This
 |Device String      |part_name              |A device string as used by Vivado HLS (see examples)|Yes|
 |Clock Period       |clock_period           |A value in nanoseconds input as a string, e.g. "10"|Yes|
 |HDL Language       |language               |Either "vhdl" or "verilog"      |No (Default is "vhdl")|
+|Compiler           |Compiler               |Either "gcc" or "clang"         |No (HLS defaults to gcc)|
 |Compiler Options   |cflags                 |Any flag for GCC (e.g. --std=c++11)|No|
 
 
