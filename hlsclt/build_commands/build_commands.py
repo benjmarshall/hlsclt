@@ -139,11 +139,11 @@ def build_end_callback(ctx,sub_command_returns,keep,report):
     ctx.obj.file.write("exit" + "\n")
     ctx.obj.file.close()
     # Call the Vivado HLS process
-    hls_processs = subprocess.run(["vivado_hls", "-f", "run_hls.tcl"],shell=True)
+    returncode = subprocess.call(["vivado_hls -f run_hls.tcl"],shell=True)
     # Check return status of the HLS process.
-    if hls_processs.returncode < 0:
+    if returncode < 0:
         raise click.Abort()
-    elif hls_processs.returncode > 0:
+    elif returncode > 0:
         click.echo("Warning: HLS Process returned an error, skipping report opening!")
         raise click.Abort()
     else:
