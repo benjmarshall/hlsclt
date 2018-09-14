@@ -45,17 +45,6 @@ def parse_config_vars(config_loaded, config, errors):
     config_loaded_set = set(config_loaded_dict)
     config_set = set(config)
     options_defined = config_loaded_set.intersection(config_set)
-    # Do some initial error checking on config options_defined
-    if "cflags" in options_defined:
-        try:
-            try :
-                if config_loaded_dict["compiler"] != "clang":
-                    raise ConfigError("Error: cflags should not be defined unless the compiler switch is set to 'clang'.")
-            except:
-                raise ConfigError("Error: cflags should not be defined unless the compiler switch is set to 'clang'.")
-        except ConfigError as err:
-            errors.append(err)
-            return
     del_list = [];
     for name in config:
         # Catch optional config entries which don't need defaults
