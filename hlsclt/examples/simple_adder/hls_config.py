@@ -9,3 +9,5 @@ tb_files = ["testbench.cpp"]
 part_name = "xc7z020clg484-1"
 clock_period = "10"
 language = "vhdl"
+#compiler = ""
+#cflags = ""

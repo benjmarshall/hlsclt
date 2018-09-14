@@ -20,8 +20,12 @@ def do_start_build_stuff(ctx):
         file = click.open_file("run_hls.tcl","w")
         file.write("open_project " + config["project_name"] + "\n")
         file.write("set_top " + config["top_level_function_name"] + "\n")
+        if config.get("cflags","") != "":
+            cf = " -cflags \"%s\"" % config["cflags"]
+        else:
+            cf = ""
         for src_file in config["src_files"]:
-            file.write("add_files " + config["src_dir_name"] + "/" + src_file + "\n")
+            file.write("add_files " + config["src_dir_name"] + "/" + src_file + cf + "\n")
         for tb_file in config["tb_files"]:
             file.write("add_files -tb " + config["tb_dir_name"] + "/" + tb_file + "\n")
         if ctx.params['keep']:
@@ -39,7 +43,7 @@ def do_start_build_stuff(ctx):
 def do_default_build(ctx):
     config = ctx.obj.config
     file = ctx.obj.file
-    file.write("csim_design -clean" + "\n")
+    file.write("csim_design -clean" + (" -compiler clang" if config.get("compiler","") == "clang" else "") + " \n")
     file.write("csynth_design" + "\n")
     file.write("cosim_design -O -rtl " + config["language"] + "\n")
     file.write("export_design -format ip_catalog" + "\n")
@@ -48,7 +52,8 @@ def do_default_build(ctx):
 # Function which defines the main actions of the 'csim' command.
 def do_csim_stuff(ctx):
     file = ctx.obj.file
-    file.write("csim_design -clean" + "\n")
+    config = ctx.obj.config
+    file.write("csim_design -clean" + (" -compiler clang" if config.get("compiler","") == "clang" else "") + "\n")
 
 # Function which defines the main actions of the 'syn' command.
 def do_syn_stuff(ctx):
@@ -134,11 +139,11 @@ def build_end_callback(ctx,sub_command_returns,keep,report):
     ctx.obj.file.write("exit" + "\n")
     ctx.obj.file.close()
     # Call the Vivado HLS process
-    hls_processs = subprocess.run(["vivado_hls", "-f", "run_hls.tcl"])
+    returncode = subprocess.call(["vivado_hls -f run_hls.tcl"],shell=True)
     # Check return status of the HLS process.
-    if hls_processs.returncode < 0:
+    if returncode < 0:
         raise click.Abort()
-    elif hls_processs.returncode > 0:
+    elif returncode > 0:
         click.echo("Warning: HLS Process returned an error, skipping report opening!")
         raise click.Abort()
     else:

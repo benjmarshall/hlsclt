@@ -128,6 +128,8 @@ Each Vivado HLS project requires a 'config.py' file in order to use hlsclt. This
 |Device String      |part_name              |A device string as used by Vivado HLS (see examples)|Yes|
 |Clock Period       |clock_period           |A value in nanoseconds input as a string, e.g. "10"|Yes|
 |HDL Language       |language               |Either "vhdl" or "verilog"      |No (Default is "vhdl")|
+|Compiler           |Compiler               |Either "gcc" or "clang"         |No (HLS defaults to gcc)|
+|Compiler Options   |cflags                 |Any flag for GCC (e.g. --std=c++11)|No|
 
 
 Here is an example file taken from the [simple_adder](hlsclt/examples/simple_adder) example shipped with the tool (note that some of the optional items have been commented out in order to use the defaults):
@@ -139,6 +141,7 @@ Here is an example file taken from the [simple_adder](hlsclt/examples/simple_add
 top_level_function_name = "simple_adder"
 #src_dir_name = "src"
 #tb_dir_name = "tb"
+# cflags = ""
 src_files = ["dut.h","dut.cpp"]
 tb_files = ["testbench.cpp"]
 part_name = "xc7z020clg484-1"
