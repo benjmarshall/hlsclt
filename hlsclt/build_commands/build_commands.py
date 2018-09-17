@@ -32,7 +32,7 @@ def do_start_build_stuff(ctx):
             file.write("open_solution -reset \"solution" + str(solution_num) + "\"" + "\n")
         else:
             file.write("open_solution \"solution" + str(solution_num) + "\"" + "\n")
-        file.write("set_part \{" + config["part_name"] + "\}" + "\n")
+        file.write("set_part " + config["part_name"] + "\n")
         file.write("create_clock -period " + config["clock_period"] + " -name default" + "\n")
         return file
     except OSError:
