@@ -79,6 +79,8 @@ def gather_project_status(ctx):
         f.close()
     except OSError:
         pass
+    except:
+        pass
     # Pull details from implementation directory, first the presence of an export...
     if os.path.isdir(config["project_name"] + "/solution" + str(solution_num) + "/impl/ip"):
         project_status.append('export_ip_done')
