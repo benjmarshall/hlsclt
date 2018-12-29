@@ -43,11 +43,19 @@ def do_start_build_stuff(ctx):
 def do_default_build(ctx):
     config = ctx.obj.config
     file = ctx.obj.file
+    solution_num = ctx.obj.solution_num
     file.write("csim_design -clean" + (" -compiler clang" if config.get("compiler","") == "clang" else "") + " \n")
     file.write("csynth_design" + "\n")
     file.write("cosim_design -O -rtl " + config["language"] + "\n")
     file.write("export_design -format ip_catalog" + "\n")
     file.write("export_design -format sysgen" + "\n")
+    # Copy the src/ files as well as the config file to keep track of the changes over solutions
+    import shutil
+    destiny = config["project_name"] + "/solution" + str(solution_num)
+    destiny_src = destiny + "/src"
+    destiny_config = destiny + "/hls_config.py"
+    shutil.copytree("src", destiny_src)
+    shutil.copyfile("hls_config.py", destiny_config)
 
 # Function which defines the main actions of the 'csim' command.
 def do_csim_stuff(ctx):
