@@ -34,6 +34,11 @@ def do_start_build_stuff(ctx):
             file.write("open_solution \"solution" + str(solution_num) + "\"" + "\n")
         file.write("set_part " + config["part_name"] + "\n")
         file.write("create_clock -period " + config["clock_period"] + " -name default" + "\n")
+        # set the constraint files
+        # file.write("create_fileset -constrset my_constraints\n")
+        for const_file in config["const_files"]:
+            # file.write("add_files -fileset my_constraints " + config["const_dir_name"] + "/" + const_file + "\n")
+            file.write("read_xdc " + config["const_dir_name"] + "/" + const_file + "\n")
         return file
     except OSError:
         click.echo("Woah! Couldn't create a Tcl run file in the current folder!")

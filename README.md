@@ -123,9 +123,11 @@ Each Vivado HLS project requires a 'config.py' file in order to use hlsclt. This
 |Function Name      |top_level_function_name|String which match function name|Yes       |
 |Source Files Dir   |src_dir_name           |Name of directory where source files are located, relative to the project folder|No (Default is 'src')|
 |Testbench Files Dir|tb_dir_name            |Name of directory where testbench files are located, relative to the project folder|No (Default is 'tb')|
+|Constraints Files Dir|const_dir_name            |Name of directory where the constraint files (.xdc) are located, relative to the project folder | No (Default is 'const')|
 |Source Files       |src_files              |A list of source files required, located within the Source Files directory|Yes|
 |Testbench Files    |tb_files               |A list of testbench files required, located within the Testbench Files directory|Yes|
 |Device String      |part_name              |A device string as used by Vivado HLS (see examples)|Yes|
+|Constraint Files    |const_files           |A list of constraint files, located within the Constraints Files directory|Yes|
 |Clock Period       |clock_period           |A value in nanoseconds input as a string, e.g. "10"|Yes|
 |HDL Language       |language               |Either "vhdl" or "verilog"      |No (Default is "vhdl")|
 |Compiler           |Compiler               |Either "gcc" or "clang"         |No (HLS defaults to gcc)|
@@ -154,4 +156,4 @@ language = "vhdl"
 See [LICENSE](LICENSE)
 
 ## Bugs/Issues
-If you have any issues or find a bug please first search the [open issues](https://github.com/benjmarshall/hlsclt/issues) on github and then submit a new issue ticket.  
+If you have any issues or find a bug please first search the [open issues](https://github.com/benjmarshall/hlsclt/issues) on github and then submit a new issue ticket.
