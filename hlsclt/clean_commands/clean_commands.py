@@ -32,7 +32,7 @@ def try_delete(item):
 # Funtion to remove generated files
 def clean_up_generated_files(obj):
         config = obj.config
-        if try_delete(config["project_name"]) + try_delete("run_hls.tcl") + try_delete("vivado_hls.log") == 3:
+        if try_delete(config["project_name"]) + try_delete("c") + try_delete("run_hls.tcl") + try_delete("vivado_hls.log") == 3:
             click.echo("Warning: Nothing to remove!")
         else:
             click.echo("Cleaned up generated files.")
