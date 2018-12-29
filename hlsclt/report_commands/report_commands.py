@@ -111,6 +111,75 @@ def print_project_status(ctx):
     click.echo("    System Generator:  " + (click.style("Run", fg='green') if "export_sysgen_done" in project_status else click.style("Not Run", fg='yellow')))
     click.echo("    Export Evaluation: " + (click.style("Run", fg='green') if "evaluate_done" in project_status else click.style("Not Run", fg='yellow')))
 
+    # Summarize the results obtained accross solutions
+    if solution_num > 0:
+        click.secho("Solutions", bold=True)
+        for i in range(solution_num):
+            # solutions start in "1"
+            j = i + 1
+            # Fetch the information directly from the report, if possible
+            try:
+                with click.open_file(config["project_name"] + "/solution" + str(j) + "/syn/report/" + config["top_level_function_name"] + "_csynth.rpt","r") as f:
+                    click.echo("  Solution "+ str(j) + ":")
+                    # Information is typically assembled as follows in this report:
+                    #
+                    # 14 ...
+                    # 15 ================================================================
+                    # 16 == Performance Estimates
+                    # 17 ================================================================
+                    # 18 + Timing (ns):
+                    # 19     * Summary:
+                    # 20     +--------+-------+----------+------------+
+                    # 21     |  Clock | Target| Estimated| Uncertainty|
+                    # 22     +--------+-------+----------+------------+
+                    # 23     |ap_clk  |   5.00|     3.492|        0.62|
+                    # 24     +--------+-------+----------+------------+
+                    # 25
+                    # 26 + Latency (clock cycles):
+                    # 27     * Summary:
+                    # 28     +-----+-----+-----+-----+---------+
+                    # 29     |  Latency  |  Interval | Pipeline|
+                    # 30     | min | max | min | max |   Type  |
+                    # 31     +-----+-----+-----+-----+---------+
+                    # 32     |  686|  686|  686|  686|   none  |
+                    # 33     +-----+-----+-----+-----+---------+
+                    # 34 ...
+
+                    # Fetch line 23:
+                    #       |ap_clk  |   5.00|     3.492|        0.62|
+                    report_content = f.readlines()
+                    ap_clk_line = report_content[22]
+                    ap_clk_line_elements = [x.strip() for x in ap_clk_line.split('|')]
+                    clk_target = ap_clk_line_elements[2]
+                    clk_estimated = ap_clk_line_elements[3]
+                    clk_uncertainty = ap_clk_line_elements[4]
+                    click.echo("    clock:")
+                    click.echo("     - Target: "+ clk_target + " ns")
+                    click.echo("     - Estimated: "+
+                        (click.style(clk_estimated, fg='green') if float(clk_estimated) < float(clk_target) else click.style(clk_estimated, fg='red')) + " ns")
+                    click.echo("     - Uncertainty: "+ click.style(clk_uncertainty, fg='yellow') + " ns")
+
+
+                    # Fetch line 32, latency in cycles
+                    #       |  686|  686|  686|  686|   none  |
+                    summary_line = report_content[31]
+                    summary_line_elements = [x.strip() for x in summary_line.split('|')]
+                    latency_min = summary_line_elements[1]
+                    latency_max = summary_line_elements[2]
+                    click.echo("    latency:")
+                    click.echo("     - min (estimated): "+ str(float(clk_estimated)*float(latency_min)) + " ns")
+                    click.echo("     - max (estimated): "+ str(float(clk_estimated)*float(latency_max)) + " ns")
+
+                    # if "0 errors" in status_line.lower():
+                    #     project_status.append("csim_pass")
+                    # elif "fail" in status_line.lower():
+                    #     project_status.append("csim_fail")
+                    # else:
+                    #     project_status.append("csim_done")
+                f.close()
+            except IOError:
+                pass
+
 ### Click Command Definitions ###
 # Report Command
 @click.command('report', short_help='Open reports.')
