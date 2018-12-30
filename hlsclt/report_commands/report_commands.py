@@ -120,7 +120,7 @@ def print_project_status(ctx):
             # Fetch the information directly from the report, if possible
             try:
                 with click.open_file(config["project_name"] + "/solution" + str(j) + "/syn/report/" + config["top_level_function_name"] + "_csynth.rpt","r") as f:
-                    click.echo("  Solution "+ str(j) + ":")
+                    click.echo(click.style("  Solution ", fg="magenta")+ str(j) + ":")
                     # Information is typically assembled as follows in this report:
                     #
                     # 14 ...
@@ -168,7 +168,9 @@ def print_project_status(ctx):
                     latency_max = summary_line_elements[2]
                     click.echo("    latency:")
                     click.echo("     - min (estimated): "+ str(float(clk_estimated)*float(latency_min)) + " ns")
-                    click.echo("     - max (estimated): "+ str(float(clk_estimated)*float(latency_max)) + " ns")
+                    click.echo("     - min (cycles): "+ str(int(latency_min)) + " cycles")
+                    click.echo("     - max (estimated): "+ click.style(str(float(clk_estimated)*float(latency_max)), fg="cyan") + " ns")
+                    click.echo("     - max (cycles): "+ str(int(latency_max)) + " cycles")
 
                     # if "0 errors" in status_line.lower():
                     #     project_status.append("csim_pass")
