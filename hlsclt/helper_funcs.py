@@ -35,7 +35,7 @@ def get_vars_from_file(filename):
         with click.open_file(filename) as f:
             config = imp.load_source('config', '', f)
         return config
-    except OSError:
+    except (OSError, IOError):
         click.echo("Error: No hls_config.py found, please create a config file for your project. For an example config file please see the 'examples' folder within the hlsclt install directory.")
         raise click.Abort()
 

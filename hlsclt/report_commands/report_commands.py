@@ -60,7 +60,7 @@ def gather_project_status(ctx):
             else:
                 project_status.append("csim_done")
         f.close()
-    except OSError:
+    except (OSError, IOError):
         pass
     # Pull setails from csynth report
     if os.path.isfile(config["project_name"] + "/solution" + str(solution_num) + "/syn/report/" + config["top_level_function_name"] + "_csynth.rpt"):
@@ -77,7 +77,9 @@ def gather_project_status(ctx):
                         project_status.append('cosim_fail')
             project_status.append('cosim_done')
         f.close()
-    except OSError:
+    except (OSError, IOError):
+        pass
+    except:
         pass
     # Pull details from implementation directory, first the presence of an export...
     if os.path.isdir(config["project_name"] + "/solution" + str(solution_num) + "/impl/ip"):

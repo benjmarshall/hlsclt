@@ -35,7 +35,7 @@ def do_start_build_stuff(ctx):
         file.write("set_part " + config["part_name"] + "\n")
         file.write("create_clock -period " + config["clock_period"] + " -name default" + "\n")
         return file
-    except OSError:
+    except (OSError, IOError):
         click.echo("Woah! Couldn't create a Tcl run file in the current folder!")
         raise click.Abort()
 
@@ -66,7 +66,7 @@ def check_for_syn_results(proj_name, solution_num, top_level_function_name):
     try:
         with click.open_file(proj_name + "/solution" + str(solution_num) + "/syn/report/" + top_level_function_name + "_csynth.rpt"):
             return_val = True
-    except OSError:
+    except (OSError, IOError):
         pass
     return return_val
 
