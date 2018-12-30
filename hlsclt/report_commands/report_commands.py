@@ -166,11 +166,13 @@ def print_project_status(ctx):
                     summary_line_elements = [x.strip() for x in summary_line.split('|')]
                     latency_min = summary_line_elements[1]
                     latency_max = summary_line_elements[2]
-                    click.echo("    latency:")
-                    click.echo("     - min (estimated): "+ str(float(clk_estimated)*float(latency_min)) + " ns")
-                    click.echo("     - min (cycles): "+ str(int(latency_min)) + " cycles")
-                    click.echo("     - max (estimated): "+ click.style(str(float(clk_estimated)*float(latency_max)), fg="cyan") + " ns")
-                    click.echo("     - max (cycles): "+ str(int(latency_max)) + " cycles")
+                    interval_min = summary_line_elements[3]
+                    interval_max = summary_line_elements[4]
+                    click.echo("    time:")
+                    click.echo("     - min (estimated): "+ str(float(clk_estimated)*float(interval_min)) + " ns")
+                    click.echo("     - min (cycles): "+ str(int(interval_min)) + " cycles")
+                    click.echo("     - max (estimated): "+ click.style(str(float(clk_estimated)*float(interval_max)), fg="cyan") + " ns")
+                    click.echo("     - max (cycles): "+ str(int(interval_max)) + " cycles")
 
                     # if "0 errors" in status_line.lower():
                     #     project_status.append("csim_pass")
