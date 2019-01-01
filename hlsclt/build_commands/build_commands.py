@@ -10,6 +10,7 @@ import os
 import subprocess
 from hlsclt.helper_funcs import find_solution_num
 from hlsclt.report_commands.report_commands import open_report
+import shutil
 
 ### Supporting Functions ###
 # Function to generate the 'pre-amble' within the HLS Tcl build script.
@@ -49,13 +50,6 @@ def do_default_build(ctx):
     file.write("cosim_design -O -rtl " + config["language"] + "\n")
     file.write("export_design -format ip_catalog" + "\n")
     file.write("export_design -format sysgen" + "\n")
-    # Copy the src/ files as well as the config file to keep track of the changes over solutions
-    import shutil
-    destiny = config["project_name"] + "/solution" + str(solution_num)
-    destiny_src = destiny + "/src"
-    destiny_config = destiny + "/hls_config.py"
-    shutil.copytree("src", destiny_src)
-    shutil.copyfile("hls_config.py", destiny_config)
 
 # Function which defines the main actions of the 'csim' command.
 def do_csim_stuff(ctx):
@@ -116,6 +110,16 @@ def do_export_stuff(ctx,type,evaluate):
 
 # Function which defines the actions that occur after a HLS build.
 def do_end_build_stuff(ctx,sub_command_returns,report):
+    # Copy the src/ files as well as the config file to keep track of the changes over solutions
+    config = ctx.obj.config
+    solution_num = ctx.obj.solution_num
+    click.echo("Copying the source and config files to solution"+str(solution_num))
+    destiny = config["project_name"] + "/solution" + str(solution_num)
+    destiny_src = destiny + "/src"
+    destiny_config = destiny + "/hls_config.py"
+    shutil.copytree("src", destiny_src)
+    shutil.copyfile("hls_config.py", destiny_config)
+
     # Check for reporting flag
     if report:
         if not sub_command_returns:
