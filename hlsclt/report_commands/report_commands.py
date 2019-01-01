@@ -207,7 +207,7 @@ def open_gui(ctx):
     open_project_in_gui(ctx)
 
 @click.command('status', short_help='Print out the current project status.')
-@click.option('-s', '--stats', is_flag=True, help='Generate new solutions for the optimization.')
+@click.option('-s', '--stats', is_flag=True, help='Include a summary of stats for each solution.')
 @click.pass_context
 def status(ctx, stats):
     """Prints out a message detailing the current project status."""
