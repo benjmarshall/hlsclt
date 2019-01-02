@@ -92,7 +92,7 @@ def gather_project_status(ctx):
     return project_status
 
 # Function for printing out the project status
-def print_project_status(ctx):
+def print_project_status(ctx, stats):
     config = ctx.obj.config
     solution_num = ctx.obj.solution_num
     project_status = gather_project_status(ctx)
@@ -112,6 +112,81 @@ def print_project_status(ctx):
     click.echo("    IP Catalog:        " + (click.style("Run", fg='green') if "export_ip_done" in project_status else click.style("Not Run", fg='yellow')))
     click.echo("    System Generator:  " + (click.style("Run", fg='green') if "export_sysgen_done" in project_status else click.style("Not Run", fg='yellow')))
     click.echo("    Export Evaluation: " + (click.style("Run", fg='green') if "evaluate_done" in project_status else click.style("Not Run", fg='yellow')))
+
+    # Provide a stats summary of obtained accross solutions
+    if stats:
+        if solution_num > 0:
+            click.secho("Solutions", bold=True)
+            for i in range(solution_num):
+                # solutions start in "1"
+                j = i + 1
+                # Fetch the information directly from the report, if possible
+                try:
+                    with click.open_file(config["project_name"] + "/solution" + str(j) + "/syn/report/" + config["top_level_function_name"] + "_csynth.rpt","r") as f:
+                        click.echo(click.style("  Solution ", fg="magenta")+ str(j) + ":")
+                        # Information is typically assembled as follows in this report:
+                        #
+                        # 14 ...
+                        # 15 ================================================================
+                        # 16 == Performance Estimates
+                        # 17 ================================================================
+                        # 18 + Timing (ns):
+                        # 19     * Summary:
+                        # 20     +--------+-------+----------+------------+
+                        # 21     |  Clock | Target| Estimated| Uncertainty|
+                        # 22     +--------+-------+----------+------------+
+                        # 23     |ap_clk  |   5.00|     3.492|        0.62|
+                        # 24     +--------+-------+----------+------------+
+                        # 25
+                        # 26 + Latency (clock cycles):
+                        # 27     * Summary:
+                        # 28     +-----+-----+-----+-----+---------+
+                        # 29     |  Latency  |  Interval | Pipeline|
+                        # 30     | min | max | min | max |   Type  |
+                        # 31     +-----+-----+-----+-----+---------+
+                        # 32     |  686|  686|  686|  686|   none  |
+                        # 33     +-----+-----+-----+-----+---------+
+                        # 34 ...
+
+                        # Fetch line 23:
+                        #       |ap_clk  |   5.00|     3.492|        0.62|
+                        report_content = f.readlines()
+                        ap_clk_line = report_content[22]
+                        ap_clk_line_elements = [x.strip() for x in ap_clk_line.split('|')]
+                        clk_target = ap_clk_line_elements[2]
+                        clk_estimated = ap_clk_line_elements[3]
+                        clk_uncertainty = ap_clk_line_elements[4]
+                        click.echo("    clock:")
+                        click.echo("     - Target: "+ clk_target + " ns")
+                        click.echo("     - Estimated: "+
+                            (click.style(clk_estimated, fg='green') if float(clk_estimated) < float(clk_target) else click.style(clk_estimated, fg='red')) + " ns")
+                        click.echo("     - Uncertainty: "+ click.style(clk_uncertainty, fg='yellow') + " ns")
+
+
+                        # Fetch line 32, latency in cycles
+                        #       |  686|  686|  686|  686|   none  |
+                        summary_line = report_content[31]
+                        summary_line_elements = [x.strip() for x in summary_line.split('|')]
+                        latency_min = summary_line_elements[1]
+                        latency_max = summary_line_elements[2]
+                        interval_min = float(summary_line_elements[3]) + 1
+                        # Get the max interval (and sum 1 since a 0 interval/cycle means at least requires 1)
+                        interval_max = float(summary_line_elements[4]) + 1
+                        click.echo("    period (time to execute:)):")
+                        click.echo("     - min: "+ str(float(clk_estimated)*interval_min) + " ns")
+                        click.echo("     - min (cycles): "+ str(int(interval_min)) + " cycles")
+                        click.echo("     - max: "+ click.style(str((float(clk_estimated) + float(clk_uncertainty))*interval_max), fg="cyan") + " ns")
+                        click.echo("     - max (cycles): "+ str(int(interval_max)) + " cycles")
+
+                        # if "0 errors" in status_line.lower():
+                        #     project_status.append("csim_pass")
+                        # elif "fail" in status_line.lower():
+                        #     project_status.append("csim_fail")
+                        # else:
+                        #     project_status.append("csim_done")
+                    f.close()
+                except IOError:
+                    pass
 
 ### Click Command Definitions ###
 # Report Command
@@ -135,9 +210,10 @@ def open_gui(ctx):
     open_project_in_gui(ctx)
 
 @click.command('status', short_help='Print out the current project status.')
+@click.option('-s', '--stats', is_flag=True, help='Include a summary of stats for each solution.')
 @click.pass_context
-def status(ctx):
+def status(ctx, stats):
     """Prints out a message detailing the current project status."""
     check_for_project(ctx)
     ctx.obj.solution_num = find_solution_num(ctx)
-    print_project_status(ctx)
+    print_project_status(ctx, stats)
