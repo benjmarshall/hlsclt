@@ -73,10 +73,12 @@ def find_solution_num(ctx):
     # First solution is always 1.
     if solution_num == 0:
         solution_num = 1;
-    # If keep argument is specified we are starting a new solution.
-    try:
-        if ctx.params["keep"]:
-            solution_num = solution_num + 1
-    except KeyError:
-        pass
+    else:
+        # Only if this isn't the first solution
+        # If keep argument is specified we are starting a new solution.
+        try:
+            if ctx.params["keep"]:
+                solution_num = solution_num + 1
+        except KeyError:
+            pass
     return solution_num
