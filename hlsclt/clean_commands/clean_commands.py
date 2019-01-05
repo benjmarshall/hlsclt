@@ -19,10 +19,10 @@ def abort_if_false(ctx, param, value):
 def try_delete(item):
     try:
         shutil.rmtree(item)
-    except OSError:
+    except (OSError, IOError):
         try:
             os.remove(item)
-        except OSError:
+        except (OSError, IOError):
             return 1
         else:
             return 0
