@@ -35,7 +35,7 @@ def get_vars_from_file(filename):
         with click.open_file(filename) as f:
             config = imp.load_source('config', '', f)
         return config
-    except OSError:
+    except (OSError, IOError):
         click.echo("Error: No hls_config.py found, please create a config file for your project. For an example config file please see the 'examples' folder within the hlsclt install directory.")
         raise click.Abort()
 
@@ -73,10 +73,12 @@ def find_solution_num(ctx):
     # First solution is always 1.
     if solution_num == 0:
         solution_num = 1;
-    # If keep argument is specified we are starting a new solution.
-    try:
-        if ctx.params["keep"]:
-            solution_num = solution_num + 1
-    except KeyError:
-        pass
+    else:
+        # Only if this isn't the first solution
+        # If keep argument is specified we are starting a new solution.
+        try:
+            if ctx.params["keep"]:
+                solution_num = solution_num + 1
+        except KeyError:
+            pass
     return solution_num
