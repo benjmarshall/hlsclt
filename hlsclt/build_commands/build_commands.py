@@ -8,7 +8,7 @@ Copyright (c) 2017 Ben Marshall
 import click
 import os
 import subprocess
-from hlsclt.helper_funcs import find_solution_num
+from hlsclt.helper_funcs import *
 from hlsclt.report_commands.report_commands import open_report
 import shutil
 
@@ -153,7 +153,7 @@ def build_end_callback(ctx,sub_command_returns,keep,report):
     ctx.obj.file.write("exit" + "\n")
     ctx.obj.file.close()
     # Call the Vivado HLS process
-    returncode = subprocess.call(["vivado_hls -f run_hls.tcl"],shell=True)
+    returncode = subprocess.call([vivado_hls, "-f", "run_hls.tcl"],shell=True)
     # Check return status of the HLS process.
     if returncode < 0:
         raise click.Abort()
