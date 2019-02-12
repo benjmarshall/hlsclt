@@ -114,12 +114,12 @@ def do_end_build_stuff(ctx,sub_command_returns,report):
     solution_num = ctx.obj.solution_num
     click.echo("Copying the source and config files to solution"+str(solution_num))
     destiny = config["project_name"] + "/solution" + str(solution_num)
-    destiny_src = destiny + "/src"
+    destiny_src = destiny + config["src_dir_name"]
     destiny_config = destiny + "/hls_config.py"
     # If we are overwriting an existing solution delete the source directory first.
     if ctx.params['keep'] == 0:
         shutil.rmtree(destiny_src, ignore_errors=True)
-    shutil.copytree("src", destiny_src)
+    shutil.copytree(config["src_dir_name"], destiny_src)
     shutil.copyfile("hls_config.py", destiny_config)
 
     # Check for reporting flag
