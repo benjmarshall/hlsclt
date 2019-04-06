@@ -33,7 +33,7 @@ def do_start_build_stuff(ctx):
         else:
             cf_tb = ""
         for tb_file in config["tb_files"]:
-            file.write("add_files -tb " + config["tb_dir_name"] + "/" + tb_file + cf_tb "\n")
+            file.write("add_files -tb " + config["tb_dir_name"] + "/" + tb_file + cf_tb + "\n")
         
         if ctx.params['keep']:
             file.write("open_solution -reset \"solution" + str(solution_num) + "\"" + "\n")
