@@ -28,6 +28,7 @@ def generate_default_config():
         "src_dir_name" : "src",
         "tb_dir_name" : "tb",
         "cflags": "",
+        "cflags_tb": "",
         "src_files" : "",
         "compiler": "",
         "tb_files" : "",
@@ -56,7 +57,8 @@ def parse_config_vars(config_loaded, config, errors):
     del_list = [];
     for name in config:
         # Catch optional config entries which don't need defaults
-        if str(name) == "compiler" or str(name) == "cflags":
+        # if str(name) == "compiler" or str(name) == "cflags":
+        if str(name) == "compiler" or "cflags" in str(name):
             if str(name) not in options_defined:
                 del_list.append(name)
             else:

@@ -12,12 +12,13 @@ from hlsclt.helper_funcs import *
 from hlsclt.report_commands.report_commands import open_report
 import shutil
 import platform
-os=platform.system()
+OS=platform.system()
 ### Supporting Functions ###
 # Function to generate the 'pre-amble' within the HLS Tcl build script.
 def do_start_build_stuff(ctx):
     config = ctx.obj.config
     solution_num = ctx.obj.solution_num
+    exts=('jpg', 'png','h')
     try:
         file = click.open_file("run_hls.tcl","w")
         file.write("open_project " + config["project_name"] + "\n")
@@ -27,14 +28,18 @@ def do_start_build_stuff(ctx):
         else:
             cf = ""
         for src_file in config["src_files"]:
-            file.write("add_files " + config["src_dir_name"] + "/" + src_file + cf + "\n")
+            f, ext = os.path.splitext(src_file)
+            cf_temp = cf if ext[1:].lower() not in exts else ""
+            file.write("add_files " + config["src_dir_name"] + "/" + src_file + cf_temp + "\n")
 
         if config.get("cflags_tb","") != "":
             cf_tb = " -cflags \"%s\"" % config["cflags_tb"]
         else:
             cf_tb = ""
         for tb_file in config["tb_files"]:
-            file.write("add_files -tb " + config["tb_dir_name"] + "/" + tb_file + cf_tb + "\n")
+            f, ext = os.path.splitext(tb_file)
+            cf_tb_temp = cf_tb if ext[1:].lower() not in exts else ""
+            file.write("add_files -tb " + config["tb_dir_name"] + "/" + tb_file + cf_tb_temp + "\n")
 
         if ctx.params['keep']:
             file.write("open_solution -reset \"solution" + str(solution_num) + "\"" + "\n")
@@ -160,8 +165,8 @@ def build_end_callback(ctx,sub_command_returns,keep,report):
     ctx.obj.file.write("exit" + "\n")
     ctx.obj.file.close()
     # Call the Vivado HLS process
-    print("vivado_hls is now launching in %s!"%os)
-    if os=="Windows":
+    print("vivado_hls is now launching in %s!"%OS)
+    if OS=="Windows":
         returncode = subprocess.call([vivado_hls, "-f", "run_hls.tcl"],shell=True)
     else:
         # CANNOT USE SHELL=TRUE IN LINUX
