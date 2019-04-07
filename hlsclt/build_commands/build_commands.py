@@ -160,7 +160,7 @@ def build_end_callback(ctx,sub_command_returns,keep,report):
     ctx.obj.file.close()
     # Call the Vivado HLS process
     print("vivado_hls is now launching!")
-    returncode = subprocess.call([vivado_hls, "-f", "run_hls.tcl"],shell=True)
+    returncode = subprocess.call(["vivado_hls", "-f", "run_hls.tcl"],shell=True)
     # Check return status of the HLS process.
     if returncode < 0:
         raise click.Abort()
