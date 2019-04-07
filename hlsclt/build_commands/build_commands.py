@@ -12,7 +12,9 @@ from hlsclt.helper_funcs import *
 from hlsclt.report_commands.report_commands import open_report
 import shutil
 import platform
+import hlsclt
 OS=platform.system()
+
 ### Supporting Functions ###
 # Function to generate the 'pre-amble' within the HLS Tcl build script.
 def do_start_build_stuff(ctx):
@@ -158,6 +160,7 @@ def build(ctx,keep,report):
 @build.resultcallback()
 @click.pass_context
 def build_end_callback(ctx,sub_command_returns,keep,report):
+    config = ctx.obj.config
     # Catch the case where no subcommands have been issued and offer a default build
     if not sub_command_returns:
         if click.confirm("No build stages specified, would you like to run a default sequence using all the build stages?", abort=True):
@@ -166,11 +169,18 @@ def build_end_callback(ctx,sub_command_returns,keep,report):
     ctx.obj.file.close()
     # Call the Vivado HLS process
     print("vivado_hls is now launching in %s!"%OS)
+    vivado_hls="vivado_hls"
     if OS=="Windows":
         returncode = subprocess.call([vivado_hls, "-f", "run_hls.tcl"],shell=True)
     else:
         # CANNOT USE SHELL=TRUE IN LINUX
-        returncode = subprocess.call([vivado_hls, "-f", "run_hls.tcl"])
+        if  OS=="Linux":
+            if config.get("vivado_hls_version","") != "":
+                vivado_hls2=os.path.join("/","tools","Xilinx","Vivado",config["vivado_hls_version"],"bin","vivado_hls")
+            else:
+                vivado_hls2=vivado_hls
+        print("vivado_hls=%s"%vivado_hls2)
+        returncode = subprocess.call([vivado_hls2, "-f", "run_hls.tcl"])
     # Check return status of the HLS process.
     if returncode < 0:
         raise click.Abort()

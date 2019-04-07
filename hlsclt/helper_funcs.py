@@ -10,13 +10,6 @@ import os
 import imp
 from glob import glob
 from .classes import *
-import platform
-
-mysys=platform.system()
-if mysys=="Windows":
-    vivado_hls="vivado_hls.bat"
-else:
-    vivado_hls="vivado_hls"
 
 ### Function Definitions ###
 # Function to generate the default config dicttionary
@@ -24,6 +17,7 @@ def generate_default_config():
     proj_name=os.path.relpath(".","..")
     config = {
         "project_name" : "proj_" + proj_name,
+        "vivado_hls_version" : "",
         "top_level_function_name" : "",
         "src_dir_name" : "src",
         "tb_dir_name" : "tb",
