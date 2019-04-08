@@ -19,6 +19,7 @@ OS=platform.system()
 # Function to generate the 'pre-amble' within the HLS Tcl build script.
 def do_start_build_stuff(ctx):
     config = ctx.obj.config
+    #print("config=",config)
     solution_num = ctx.obj.solution_num
     exts=('jpg', 'png','h')
     try:
@@ -41,7 +42,10 @@ def do_start_build_stuff(ctx):
         for tb_file in config["tb_files"]:
             f, ext = os.path.splitext(tb_file)
             cf_tb_temp = cf_tb if ext[1:].lower() not in exts else ""
-            file.write("add_files -tb " + config["tb_dir_name"] + "/" + tb_file + cf_tb_temp + "\n")
+            add_str="add_files -tb " + config["tb_dir_name"] + "/" + tb_file + cf_tb_temp + "\n"
+            #print("add_str=",add_str)
+            #print("cf_tb_temp=", cf_tb_temp)
+            file.write(add_str)
 
         if ctx.params['keep']:
             file.write("open_solution -reset \"solution" + str(solution_num) + "\"" + "\n")
