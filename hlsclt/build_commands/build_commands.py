@@ -137,7 +137,7 @@ def do_end_build_stuff(ctx,sub_command_returns,report):
     # If we are overwriting an existing solution delete the source directory first.
     if ctx.params['keep'] == 0:
         shutil.rmtree(destiny_src, ignore_errors=True)
-    shutil.copytree("src", destiny_src)
+    shutil.copytree(config["src_dir_name"], destiny_src)
     shutil.copyfile("hls_config.py", destiny_config)
 
     # Check for reporting flag
