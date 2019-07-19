@@ -6,8 +6,10 @@ Copyright (c) 2017 Ben Marshall
 
 ### Imports ###
 import click
+import sys
 import os
-import imp
+#import imp
+import importlib
 from glob import glob
 from .classes import *
 
@@ -32,11 +34,18 @@ def generate_default_config():
     }
     return config
 
+def osfsdecode(name):
+    if sys.version_info[0] > 3:
+        return os.fsdecode(name)
+    return name
+    
 # Function to read in the config from a local file and generate a config structure.
 def get_vars_from_file(filename):
     try:
-        with click.open_file(filename) as f:
-            config = imp.load_source('config', '', f)
+        #print("filename=",os.path.abspath(filename))
+        #with click.open_file(filename) as f:
+            #config = imp.load_source('config', '', f)
+        config = importlib.machinery.SourceFileLoader('config', filename).load_module()
         return config
     except (OSError, IOError):
         click.echo("Error: No hls_config.py found, please create a config file for your project. For an example config file please see the 'examples' folder within the hlsclt install directory.")
