@@ -8,15 +8,20 @@ Copyright (c) 2017 Ben Marshall
 import click
 import os
 import subprocess
-from hlsclt.helper_funcs import find_solution_num
+from hlsclt.helper_funcs import *
 from hlsclt.report_commands.report_commands import open_report
 import shutil
+import platform
+import hlsclt
+OS=platform.system()
 
 ### Supporting Functions ###
 # Function to generate the 'pre-amble' within the HLS Tcl build script.
 def do_start_build_stuff(ctx):
     config = ctx.obj.config
+    #print("config=",config)
     solution_num = ctx.obj.solution_num
+    exts=('jpg', 'png','h')
     try:
         file = click.open_file("run_hls.tcl","w")
         file.write("open_project " + config["project_name"] + "\n")
@@ -26,9 +31,22 @@ def do_start_build_stuff(ctx):
         else:
             cf = ""
         for src_file in config["src_files"]:
-            file.write("add_files " + config["src_dir_name"] + "/" + src_file + cf + "\n")
+            f, ext = os.path.splitext(src_file)
+            cf_temp = cf if ext[1:].lower() not in exts else ""
+            file.write("add_files " + config["src_dir_name"] + "/" + src_file + cf_temp + "\n")
+
+        if config.get("cflags_tb","") != "":
+            cf_tb = " -cflags \"%s\"" % config["cflags_tb"]
+        else:
+            cf_tb = ""
         for tb_file in config["tb_files"]:
-            file.write("add_files -tb " + config["tb_dir_name"] + "/" + tb_file + "\n")
+            f, ext = os.path.splitext(tb_file)
+            cf_tb_temp = cf_tb if ext[1:].lower() not in exts else ""
+            add_str="add_files -tb " + config["tb_dir_name"] + "/" + tb_file + cf_tb_temp + "\n"
+            #print("add_str=",add_str)
+            #print("cf_tb_temp=", cf_tb_temp)
+            file.write(add_str)
+
         if ctx.params['keep']:
             file.write("open_solution -reset \"solution" + str(solution_num) + "\"" + "\n")
         else:
@@ -119,7 +137,7 @@ def do_end_build_stuff(ctx,sub_command_returns,report):
     # If we are overwriting an existing solution delete the source directory first.
     if ctx.params['keep'] == 0:
         shutil.rmtree(destiny_src, ignore_errors=True)
-    shutil.copytree("src", destiny_src)
+    shutil.copytree(config["src_dir_name"], destiny_src)
     shutil.copyfile("hls_config.py", destiny_config)
 
     # Check for reporting flag
@@ -146,6 +164,7 @@ def build(ctx,keep,report):
 @build.resultcallback()
 @click.pass_context
 def build_end_callback(ctx,sub_command_returns,keep,report):
+    config = ctx.obj.config
     # Catch the case where no subcommands have been issued and offer a default build
     if not sub_command_returns:
         if click.confirm("No build stages specified, would you like to run a default sequence using all the build stages?", abort=True):
@@ -153,7 +172,19 @@ def build_end_callback(ctx,sub_command_returns,keep,report):
     ctx.obj.file.write("exit" + "\n")
     ctx.obj.file.close()
     # Call the Vivado HLS process
-    returncode = subprocess.call(["vivado_hls -f run_hls.tcl"],shell=True)
+    print("vivado_hls is now launching in %s!"%OS)
+    vivado_hls="vivado_hls"
+    if OS=="Windows":
+        returncode = subprocess.call([vivado_hls, "-f", "run_hls.tcl"],shell=True)
+    else:
+        # CANNOT USE SHELL=TRUE IN LINUX
+        if  OS=="Linux":
+            if config.get("vivado_hls_version","") != "":
+                vivado_hls2=os.path.join("/","tools","Xilinx","Vivado",config["vivado_hls_version"],"bin","vivado_hls")
+            else:
+                vivado_hls2=vivado_hls
+        print("vivado_hls=%s"%vivado_hls2)
+        returncode = subprocess.call([vivado_hls2, "-f", "run_hls.tcl"])
     # Check return status of the HLS process.
     if returncode < 0:
         raise click.Abort()

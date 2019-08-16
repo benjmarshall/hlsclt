@@ -9,7 +9,7 @@ import click
 import os
 import subprocess
 from glob import glob
-from hlsclt.helper_funcs import find_solution_num
+from hlsclt.helper_funcs import *
 
 ### Supporting Functions ###
 # Function to check if project exists
@@ -41,7 +41,7 @@ def open_report(ctx,report):
 # Function for opening the HLS GUI
 def open_project_in_gui(ctx):
     config = ctx.obj.config
-    hls_process = subprocess.Popen(["vivado_hls", "-p", config["project_name"]])
+    hls_process = subprocess.Popen([vivado_hls, "-p", config["project_name"]])
 
 # Function for gathering the project status
 def gather_project_status(ctx):
