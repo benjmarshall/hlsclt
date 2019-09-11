@@ -28,7 +28,7 @@ def do_start_build_stuff(ctx):
         for src_file in config["src_files"]:
             file.write("add_files " + config["src_dir_name"] + "/" + src_file + cf + "\n")
         for tb_file in config["tb_files"]:
-            file.write("add_files -tb " + config["tb_dir_name"] + "/" + tb_file + "\n")
+            file.write("add_files -tb " + config["tb_dir_name"] + "/" + tb_file + cf + "\n")
         if ctx.params['keep']:
             file.write("open_solution -reset \"solution" + str(solution_num) + "\"" + "\n")
         else:
