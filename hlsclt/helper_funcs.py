@@ -47,6 +47,20 @@ def config_parser():
                                  parse_default("vhdl")),
     })
 
+def read_config_file(file):
+    """
+    Read configuration values from config file,
+        overwriting the default ones
+    """
+    try:
+        file_content = "".join(file.readlines())
+        return yaml.safe_load(file_content)
+    except (OSError, IOError):
+        raise Error("Error: No hls_config.json found, "
+                    + "please create a config file for your project."
+                    + "For an example config file please see the 'examples'"
+                    + "folder within the hlsclt install directory.")
+
 
 # Function to find the highest solution number within a HLS project.
 def find_solution_num(ctx):
