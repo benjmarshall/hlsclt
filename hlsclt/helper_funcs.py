@@ -8,8 +8,9 @@ import os
 from pyaml import yaml
 from glob import glob
 from .classes import Error
-from .config import parse_and_map, parse_choice, parse_default, parse_dict
-from .config import parse_int, parse_list, parse_one_of, parse_string
+from .config import parse_and_map, parse_one_of, parse_choice, parse_default
+from .config import parse_int, parse_list, parse_string, parse_const, parse_dict
+
 
 def load_config(file):
     """
@@ -23,7 +24,16 @@ def load_config(file):
     return parsed
 
 
-def config_parser():
+def get_config_parser():
+    def parse_source_list():
+        def add_empty_flags(path):
+            return {'path': path, 'cflags': ""}
+        simple_source_file = parse_and_map(parse_string, add_empty_flags)
+        source_and_flags = parse_dict({
+            'path': parse_string,
+            'cflags': parse_one_of(parse_string, parse_const(""))
+        })
+        return parse_list(parse_one_of(simple_source_file, source_and_flags))
 
     default_proj_name = parse_default("proj_%s" % os.path.relpath(".", ".."))
 
@@ -35,9 +45,9 @@ def config_parser():
                                      parse_default("src/")),
         "tb_dir_name": parse_one_of(parse_string,
                                     parse_default("tb/")),
-        "src_files": parse_one_of(parse_list(parse_string),
+        "src_files": parse_one_of(parse_source_list(),
                                   parse_default([])),
-        "tb_files": parse_one_of(parse_list(parse_string),
+        "tb_files": parse_one_of(parse_source_list(),
                                  parse_default([])),
         "compiler": parse_one_of(parse_choice("gcc", "clang"),
                                  parse_default("gcc")),
