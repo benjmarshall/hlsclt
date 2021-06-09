@@ -47,7 +47,7 @@ setup(
 
     packages=find_packages(),
 
-    install_requires=['Click'],
+    install_requires=['Click', "pyaml"],
 
     entry_points = {
         'console_scripts': ['hlsclt=hlsclt.hlsclt:cli']
