@@ -13,9 +13,8 @@ class Error(Exception):
     pass
 
 
-# Specific error class for local config file errors
-class ConfigError(Error):
-    """Exception raised for options malformed or not defined in config.
+class Errors(Error):
+    """Wrapper class for multiple errors
 
     Attributes:
         errors -- explanation of the errors, that may be encountered
@@ -24,6 +23,12 @@ class ConfigError(Error):
     def __init__(self, errors: List[Error]):
         self.errors = errors
         super().__init__("\n".join(map(str, errors)))
+
+
+# Specific error class for local config file errors
+class ConfigError(Errors):
+    """Exception raised for options malformed or not defined in config.
+    """
 
 
 # Class to hold application specific info within the Click context.

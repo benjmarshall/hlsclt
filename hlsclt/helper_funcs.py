@@ -4,65 +4,49 @@
 Copyright (c) 2017 Ben Marshall
 """
 
-### Imports ###
-import click
 import os
-import imp
+from pyaml import yaml
 from glob import glob
-from .classes import *
+from .classes import Error
+from .config import parse_and_map, parse_choice, parse_default, parse_dict
+from .config import parse_int, parse_list, parse_one_of, parse_string
 
-### Function Definitions ###
-# Function to generate the default config dicttionary
-def generate_default_config():
-    config = {
-        "project_name" : "proj_" + os.path.relpath(".",".."),
-        "top_level_function_name" : "",
-        "src_dir_name" : "src",
-        "tb_dir_name" : "tb",
-        "cflags": "",
-        "src_files" : "",
-        "compiler": "",
-        "tb_files" : "",
-        "part_name" : "",
-        "clock_period" : "",
-        "language" : "vhdl",
-    }
-    return config
+def load_config(file):
+    """
+    Function to load the configuration from a file.
+    """
+    config_file = read_config_file(file)
+    parsed = get_config_parser()(file.name, config_file)
+    # Context sensitive analysis
+    if isinstance(parsed, Error):
+        raise parsed
+    return parsed
 
-# Function to read in the config from a local file and generate a config structure.
-def get_vars_from_file(filename):
-    try:
-        with click.open_file(filename) as f:
-            config = imp.load_source('config', '', f)
-        return config
-    except (OSError, IOError):
-        click.echo("Error: No hls_config.py found, please create a config file for your project. For an example config file please see the 'examples' folder within the hlsclt install directory.")
-        raise click.Abort()
 
-# Funtion to parse a loaded config structure and overwrite the config dictionary defaults.
-def parse_config_vars(config_loaded, config, errors):
-    config_loaded_dict = dict((name, getattr(config_loaded, name)) for name in dir(config_loaded) if not name.startswith('__'))
-    config_loaded_set = set(config_loaded_dict)
-    config_set = set(config)
-    options_defined = config_loaded_set.intersection(config_set)
-    del_list = [];
-    for name in config:
-        # Catch optional config entries which don't need defaults
-        if str(name) == "compiler" or str(name) == "cflags":
-            if str(name) not in options_defined:
-                del_list.append(name)
-            else:
-                config[name] = config_loaded_dict[name]
-        elif str(name) in options_defined:
-            config[name] = config_loaded_dict[name]
-            try:
-                if not config[name]:
-                    raise ConfigError("Error: " + name + " is not defined in config file. No default exists, please define a value in the config file.")
-            except ConfigError as err:
-                errors.append(err)
-                continue
-    for name in del_list:
-        del config[name]
+def config_parser():
+
+    default_proj_name = parse_default("proj_%s" % os.path.relpath(".", ".."))
+
+    return parse_dict({
+        "project_name": parse_one_of(parse_string,
+                                     default_proj_name),
+        "top_level_function_name": parse_string,
+        "src_dir_name": parse_one_of(parse_string,
+                                     parse_default("src/")),
+        "tb_dir_name": parse_one_of(parse_string,
+                                    parse_default("tb/")),
+        "src_files": parse_one_of(parse_list(parse_string),
+                                  parse_default([])),
+        "tb_files": parse_one_of(parse_list(parse_string),
+                                 parse_default([])),
+        "compiler": parse_one_of(parse_choice("gcc", "clang"),
+                                 parse_default("gcc")),
+        "part_name": parse_string,
+        "clock_period": parse_int,
+        "language": parse_one_of(parse_choice("vhdl", "verilog"),
+                                 parse_default("vhdl")),
+    })
+
 
 # Function to find the highest solution number within a HLS project.
 def find_solution_num(ctx):
