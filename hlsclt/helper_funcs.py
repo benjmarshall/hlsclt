@@ -5,6 +5,7 @@ Copyright (c) 2017 Ben Marshall
 """
 
 import os
+from click.shell_completion import CompletionItem
 from pyaml import yaml
 from .classes import Error, ConfigError
 from .config import parse_and_map, parse_one_of, parse_choice, parse_default
@@ -26,16 +27,14 @@ def load_config(file):
         file.path = os.path.join(config.tb_dir_name, file.path)
     del config.tb_dir_name
     del config.src_dir_name
-    for solution in config.solutions:
-        if config.solution == solution.name:
-            config.active_solution = solution
-            break
-    else:
-        raise ConfigError([Error("Solution '%s' not found in solutions: %s"
-                                 % (config.solution,
-                                    list(map(lambda s: s.name,
-                                             config.solutions))))])
-
+    try:
+        set_active_solution(config, config.solution)
+    except ConfigError:
+        # The specified solution is not in the solutions list
+        # append a default solution with its name
+        config.solutions.append(
+            parse_solution()("", {"name": config.solution}))
+        set_active_solution(config, config.solution)
     for file in config.active_solution.src_files:
         file.path = os.path.join(config.active_solution.src_dir_name,
                                  file.path)
@@ -48,6 +47,41 @@ def load_config(file):
         config.active_solution.top_level_function_name =\
             config.top_level_function_name
     return config
+
+
+def set_active_solution(config, solution):
+    for solution in config.solutions:
+        if config.solution == solution.name:
+            config.active_solution = solution
+            break
+    else:
+        raise ConfigError([Error("Solution '%s' not found in solutions: %s"
+                                 % (config.solution,
+                                    list(map(lambda s: s.name,
+                                             config.solutions))))])
+
+
+def complete_solution(ctx, param, incomplete):
+    try:
+        # Search for config_file in parent context, return [] if not found
+        while ctx:
+            if 'config_file' in ctx.params:
+                break
+            ctx = ctx.parent
+        else:
+            return []
+        config = load_config(ctx.params['config_file'])
+
+        def mk_completion_item(name):
+            help = "default" if name == config.active_solution.name else ""
+            return CompletionItem(name, help=help)
+
+        return list(map(lambda name: mk_completion_item(name),
+                        filter(lambda name: name.startswith(incomplete),
+                        map(lambda sol: sol.name,
+                            config.solutions))))
+    except Exception:
+        return []
 
 
 def get_config_parser():

@@ -8,7 +8,9 @@ import click
 import subprocess
 import os
 from hlsclt.report_commands.report_commands import open_report
-from hlsclt.helper_funcs import create_solution
+from hlsclt.helper_funcs import (create_solution, complete_solution,
+                                 set_active_solution)
+from hlsclt.classes import ConfigError
 import shutil
 from hlsclt.tcl_commands import\
     (open_project, open_solution, set_top, add_files, set_part, create_clock,
@@ -113,7 +115,7 @@ def do_end_build_stuff(config, script, sub_command_returns, report):
             # Must be on the default run, add all stages manually
             sub_command_returns = ['csim', 'syn', 'cosim', 'export']
         for report in sub_command_returns:
-            open_report(ctx.obj.config, report)
+            open_report(config, report)
 
 
 # Click Command Definitions
@@ -123,9 +125,17 @@ def do_end_build_stuff(config, script, sub_command_returns, report):
              short_help='Run HLS build stages.')
 @click.option('-r', '--report', is_flag=True,
               help='Open build reports when finished.')
+@click.option('-s', '--solution', type=click.Path(),
+              shell_complete=complete_solution,
+              help='Use the specified solution', required=False)
 @click.pass_context
-def build(ctx, report):
+def build(ctx, report, solution):
     """Runs the Vivado HLS tool and executes the specified build stages."""
+    if solution:
+        try:
+            set_active_solution(ctx.obj.config, solution)
+        except ConfigError as e:
+            click.echo(e, err=True)
     create_solution(ctx.obj.config.project_name, ctx.obj.config.solution)
     do_start_build_stuff(ctx.obj.config, ctx.obj.script)
 
@@ -133,7 +143,7 @@ def build(ctx, report):
 # Callback which executes when all specified build subcommands finished.
 @build.resultcallback()
 @click.pass_context
-def build_end_callback(ctx, sub_command_returns, report):
+def build_end_callback(ctx, sub_command_returns, report, solution):
     # Catch the case where no subcommands have been issued and offer a default
     if not sub_command_returns:
         if click.confirm("No build stages specified,"
@@ -196,7 +206,8 @@ def syn(ctx):
 @click.pass_context
 def cosim(ctx, debug):
     """Runs the Vivado HLS cosimulation stage."""
-    syn_lookahead_check(ctx.obj.config, ctx.obj.script, ctx.obj.syn_command_present)
+    syn_lookahead_check(ctx.obj.config, ctx.obj.script,
+                        ctx.obj.syn_command_present)
     do_cosim_stuff(ctx.obj.config, ctx.obj.script, debug)
     return 'cosim'
 
@@ -213,6 +224,7 @@ def cosim(ctx, debug):
 @click.pass_context
 def export(ctx, type, evaluate):
     """Runs the Vivado HLS export stage."""
-    syn_lookahead_check(ctx.obj.config, ctx.obj.script, ctx.obj.syn_command_present)
+    syn_lookahead_check(ctx.obj.config, ctx.obj.script,
+                        ctx.obj.syn_command_present)
     do_export_stuff(ctx.obj.config, ctx.obj.script, type, evaluate)
     return 'export'

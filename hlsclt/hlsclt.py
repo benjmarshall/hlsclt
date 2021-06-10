@@ -28,7 +28,6 @@ includes C simulation, C synthesis, Cosimulation and export for both
 Vivado IP Catalog and System Generator. If any of the run options are
 specified then only those specified are performed.
     """
-
     try:
         config = load_config(config_file)
         ctx.obj = hlsclt_internal_object(config, debug)
