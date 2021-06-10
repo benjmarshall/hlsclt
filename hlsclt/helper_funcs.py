@@ -6,7 +6,7 @@ Copyright (c) 2017 Ben Marshall
 
 import os
 from pyaml import yaml
-from .classes import Error
+from .classes import Error, ConfigError
 from .config import parse_and_map, parse_one_of, parse_choice, parse_default
 from .config import parse_int, parse_list, parse_string, parse_const, parse_obj
 
@@ -31,8 +31,9 @@ def load_config(file):
             config.active_solution = solution
             break
     else:
-        raise Error("Solution '%s' not found in solutions: %s"
-                    % (config.solution, config.solutions))
+        raise ConfigError([Error("Solution '%s' not found in solutions: %s"
+                                 % (config.solution,
+                                    list(map(lambda s: s.name, config.solutions))))])
 
     for file in config.active_solution.src_files:
         file.path = os.path.join(config.active_solution.src_dir_name,
@@ -138,13 +139,6 @@ def read_config_file(file):
                     + "please create a config file for your project."
                     + "For an example config file please see the 'examples'"
                     + "folder within the hlsclt install directory.")
-
-
-# List all solution of the project
-def list_solutions(project_name):
-    p = project_name
-    paths = filter(lambda f: os.path.isdir(os.path.join(p, f)), os.listdir(p))
-    return list(paths)
 
 
 def create_solution(project_name, solution):
