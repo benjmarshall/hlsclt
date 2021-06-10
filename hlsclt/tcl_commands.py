@@ -22,6 +22,10 @@ def add_files(files, cflags='', is_tb=False):
     return map(add_file, files)
 
 
+def source(file):
+    return "source %s" % file
+
+
 def open_solution(solution):
     return "open_solution %s" % solution
 

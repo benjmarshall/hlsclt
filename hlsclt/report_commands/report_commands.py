@@ -136,20 +136,28 @@ def print_project_status(config, stats):
     click.secho("Build Status", bold=True)
 
     def get_msg(prefix):
-        msg = "Not Run"
-        fg = 'yellow'
-        if "%s_pass" % prefix in project_status:
-            msg = "Pass"
-            fg = 'green'
-        elif "%s_fail" % prefix in project_status:
-            msg = "Fail"
-            fg = 'red'
-        elif "%s_done" % prefix in project_status:
-            msg = "Run (can't get status)"
-            fg = 'yellow'
-        else:
+        if prefix == "csim" or prefix == "cosim":
             msg = "Not Run"
             fg = 'yellow'
+            if "%s_pass" % prefix in project_status:
+                msg = "Pass"
+                fg = 'green'
+            elif "%s_fail" % prefix in project_status:
+                msg = "Fail"
+                fg = 'red'
+            elif "%s_done" % prefix in project_status:
+                msg = "Run (can't get status)"
+                fg = 'yellow'
+            else:
+                msg = "Not Run"
+                fg = 'yellow'
+        else:
+            if "%s_done" % prefix in project_status:
+                msg = "Run"
+                fg = 'green'
+            else:
+                msg = "Not Run"
+                fg = 'yellow'
         return click.style(msg, fg=fg)
 
     click.echo("  C Simulation: " + get_msg("csim"))
@@ -167,7 +175,6 @@ def print_project_status(config, stats):
                             "%s_csynth.rpt" % config.top_level_function_name)
     if stats:
         click.secho("Solutions", bold=True)
-        click.echo(list_solutions(config.project_name))
         for solution in list_solutions(config.project_name):
             # Fetch the information directly from the report, if possible
             try:
@@ -226,8 +233,8 @@ def print_project_status(config, stats):
                     # else:
                     #     project_status.append("csim_done")
                 f.close()
-            except IOError as e:
-                click.echo(e, err=True)
+            except IOError:
+                pass
 
 
 # Click Command Definitions
