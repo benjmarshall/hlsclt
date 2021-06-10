@@ -8,7 +8,6 @@ Copyright (c) 2017 Ben Marshall
 import click
 import os
 import subprocess
-from hlsclt.helper_funcs import list_solutions
 
 
 # Supporting Function
@@ -175,7 +174,7 @@ def print_project_status(config, stats):
                             "%s_csynth.rpt" % config.top_level_function_name)
     if stats:
         click.secho("Solutions", bold=True)
-        for solution in list_solutions(config.project_name):
+        for solution in map(lambda s: s.name, config.solutions):
             # Fetch the information directly from the report, if possible
             try:
                 with click.open_file(csm_path(solution)) as f:
@@ -185,19 +184,19 @@ def print_project_status(config, stats):
                     ap_clk_line = report_content[22]
                     ap_clk_line_elements = [x.strip()
                                             for x in ap_clk_line.split('|')]
-                    clk_target = ap_clk_line_elements[2]
-                    clk_estimated = ap_clk_line_elements[3]
-                    clk_uncertainty = ap_clk_line_elements[4]
+                    clk_target = float(ap_clk_line_elements[2])
+                    clk_estimated = float(ap_clk_line_elements[3])
+                    clk_uncertainty = float(ap_clk_line_elements[4])
+                    clk_estimated_clr = 'green' if clk_estimated < clk_target\
+                                        else 'red'
                     click.echo("    clock:")
-                    click.echo("     - Target: " + clk_target + " ns")
-                    click.echo("     - Estimated: "
-                               + (click.style(clk_estimated, fg='green')
-                                  if float(clk_estimated) < float(clk_target)
-                                  else click.style(clk_estimated, fg='red'))
-                               + " ns")
-                    click.echo("     - Uncertainty: "
-                               + click.style(clk_uncertainty, fg='yellow')
-                               + " ns")
+                    click.echo("     - Target: {:.0f} ns".format(clk_target))
+                    click.echo("     - Estimated: %s ns"
+                               % (click.style("{:.3f}".format(clk_estimated),
+                                              fg=clk_estimated_clr)))
+                    click.echo("     - Uncertainty: %s ns"
+                               % click.style("{:.3f}".format(clk_uncertainty),
+                                             fg='yellow'))
 
                     # Fetch line 32, latency in cycles
                     #       |  686|  686|  686|  686|   none  |
@@ -211,24 +210,24 @@ def print_project_status(config, stats):
                     # means at least requires 1)
                     interval_max = float(summary_line_elements[4]) + 1
                     click.echo("    period (time to execute:)):")
-                    click.echo("     - min: "
-                               + str(float(clk_estimated)*interval_min)
-                               + " ns")
-                    click.echo("     - min (cycles): "
-                               + str(int(interval_min))
-                               + " cycles")
-                    click.echo("     - max: "
-                               + click.style(str((float(clk_estimated)
-                                                  + float(clk_uncertainty))
-                                                 * interval_max), fg="cyan")
-                               + " ns")
-                    click.echo("     - max (cycles): "
-                               + str(int(interval_max))
-                               + " cycles")
+
+                    click.echo("     - min: {:.3f} ns".format(
+                        clk_estimated*interval_min))
+
+                    click.echo("     - min (cycles): {:,.0f} cycles".format(
+                        interval_min))
+
+                    click.echo("     - max: %s ns"
+                               % click.style("{:.3f}".format(
+                                   (clk_estimated+clk_uncertainty)
+                                   * interval_max), fg='cyan'))
+
+                    click.echo("     - max (cycles): {:,.0f} cycles".format(
+                               + interval_max))
 
                     # if "0 errors" in status_line.lower():
                     #     project_status.append("csim_pass")
-                    # elif "fail" in status_line.lower():
+                    # elif "fail" in status_line.lower()0:
                     #     project_status.append("csim_fail")
                     # else:
                     #     project_status.append("csim_done")
