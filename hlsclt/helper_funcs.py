@@ -57,9 +57,10 @@ def load_config(file):
     return config
 
 
-def set_active_solution(config, solution):
+def set_active_solution(config, set_solution):
     for solution in config.solutions:
-        if config.solution == solution.name:
+        if set_solution == solution.name:
+            config.solution = set_solution
             config.active_solution = solution
             break
     else:
