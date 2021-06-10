@@ -28,7 +28,7 @@ def parse_int(key, value):
 
 
 def parse_string(key, value):
-    if isinstance(value, str):
+    if type(value) is str:
         return value
     else:
         return Error("'%s' should be string, is: '%s'"
