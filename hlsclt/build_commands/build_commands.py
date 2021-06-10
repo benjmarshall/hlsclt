@@ -11,7 +11,6 @@ from hlsclt.report_commands.report_commands import open_report
 from hlsclt.helper_funcs import (create_solution, complete_solution,
                                  set_active_solution)
 from hlsclt.classes import ConfigError
-import shutil
 from hlsclt.tcl_commands import\
     (open_project, open_solution, set_top, add_files, set_part, create_clock,
      cosim_design, exit, export_design, csim_design, csynth_design, source,
@@ -100,14 +99,14 @@ def syn_lookahead_check(config, script, syn_command_present):
 def do_end_build_stuff(config, script, sub_command_returns, report):
     # Copy the src/ files as well as the config file
     # to keep track of the changes over solutions
-    click.echo("Copying the source and config files to solution: %s" %
-               config.solution)
-    destiny = os.path.join(config.project_name, config.solution)
-    destiny_src = os.path.join(destiny, "src")
+    # click.echo("Copying the source and config files to solution: %s" %
+    #            config.solution)
+    # destiny = os.path.join(config.project_name, config.solution)
+    # destiny_src = os.path.join(destiny, "src")
 
-    # If we are overwriting an existing solution delete the source directory
-    shutil.rmtree(destiny_src, ignore_errors=True)
-    shutil.copytree("src", destiny_src)
+    # # If we are overwriting an existing solution delete the source directory
+    # shutil.rmtree(destiny_src, ignore_errors=True)
+    # shutil.copytree("src", destiny_src)
 
     # Check for reporting flag
     if report:
