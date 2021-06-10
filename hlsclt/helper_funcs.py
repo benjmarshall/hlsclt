@@ -106,8 +106,8 @@ def parse_solution():
                          parse_list(parse_string),
                          parse_default([])),
         "source":
-            parse_one_of(parse_and_map(parse_string, list),
-                         parse_list(parse_string),
+            parse_one_of(parse_list(parse_string),
+                         parse_and_map(parse_string, list),
                          parse_default([])),
     })
 
