@@ -6,7 +6,8 @@ int main(void) {
 
 	// Setup some required variables
 	int a,b;
-	int result, expected_result, error_count;
+	int result, expected_result;
+	int error_count = 0;
 
 	// Test Loop
 	for (int i=0 ; i<10 ; i++) {

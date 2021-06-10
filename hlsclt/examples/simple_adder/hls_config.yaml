@@ -1,0 +1,21 @@
+project_name: proj_simple_adder
+top_level_function_name: simple_adder
+part_name: xc7z020clg484-1
+clock_period: 10
+language: vhdl
+src_dir_name: ""
+tb_dir_name: ""
+src_files:
+  - dut.h
+  - dut.cpp
+
+tb_files:
+  - path: testbench.cpp
+    cflags: -Wno-unknown-pragmas
+solution: sol_pipelined
+solutions:
+  - name: sol_default
+
+  - name: sol_pipelined
+    directives:
+      - pipeline simple_adder

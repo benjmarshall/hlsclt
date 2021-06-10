@@ -1,0 +1,23 @@
+# Config file for Sine Taylor Series HLS Project
+
+top_level_function_name: sin_taylor_series
+src_files:
+  - dut.h
+  - dut.cpp
+tb_files:
+  - testbench.cpp
+part_name: xc7z020clg484-1
+clock_period: 4
+solution: partially_optimised
+solutions:
+  - name: unoptimised
+
+  - name: partially_optimised
+    directives:
+      - dataflow sin_taylor_series
+
+  - name: optimised
+    directives:
+      - dataflow sin_taylor_series
+      - pipeline fact/fact_loop
+      - pipeline power/power_loop
