@@ -12,10 +12,10 @@ Supports a command line driven development process, which increases the performa
 - Open Vivado HLS GUI with project loaded
 
 ## Requirements
-- Python 2 or 3
-    - Tested with and 2.7.5 and 3.6.1
+- Python 3
+    - Tested with and and 3.9
 - Vivado HLS
-  - Tested with Vivado HLS 2017.1
+  - Tested with Vivado HLS 2017.1 and 2018.1
 
 ## Install
 ```Shell
