@@ -33,7 +33,8 @@ def load_config(file):
     else:
         raise ConfigError([Error("Solution '%s' not found in solutions: %s"
                                  % (config.solution,
-                                    list(map(lambda s: s.name, config.solutions))))])
+                                    list(map(lambda s: s.name,
+                                             config.solutions))))])
 
     for file in config.active_solution.src_files:
         file.path = os.path.join(config.active_solution.src_dir_name,

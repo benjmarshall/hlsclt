@@ -21,11 +21,13 @@ from .report_commands import report_commands
 @click.option('-d', '--debug', 'debug', default=False, is_flag=True)
 @click.pass_context
 def cli(ctx, config_file, debug):
-    """Helper tool for using Vivado HLS through the command line.\
-       If no arguments are specified then a default run is executed which\
-       includes C simulation, C synthesis, Cosimulation and export for both\
-       Vivado IP Catalog and System Generator. If any of the run options are\
-       specified then only those specified are performed."""
+    """\
+Helper tool for using Vivado HLS through the command line.
+If no arguments are specified then a default run is executed which
+includes C simulation, C synthesis, Cosimulation and export for both
+Vivado IP Catalog and System Generator. If any of the run options are
+specified then only those specified are performed.
+    """
 
     try:
         config = load_config(config_file)
