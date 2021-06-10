@@ -5,7 +5,7 @@ int main(void) {
 
 
 	// Setup some required variables
-	int a,b;
+	int a, b;
 	int result, expected_result;
 	int error_count = 0;
 
@@ -15,9 +15,9 @@ int main(void) {
 		a = i;
 		b = 100+(2*i);
 		// Predict result
-		expected_result = a+b;
+		expected_result = a + b;
 		// Call DUT
-		result = simple_adder(a,b);
+		result = simple_adder(a, b);
 		// Check result and output some visual check
 		if (result != expected_result) {
 			error_count++;
