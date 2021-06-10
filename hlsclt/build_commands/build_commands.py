@@ -12,7 +12,8 @@ from hlsclt.helper_funcs import create_solution
 import shutil
 from hlsclt.tcl_commands import\
     (open_project, open_solution, set_top, add_files, set_part, create_clock,
-     cosim_design, exit, export_design, csim_design, csynth_design, source)
+     cosim_design, exit, export_design, csim_design, csynth_design, source,
+     set_directive)
 
 
 # Supporting Functions
@@ -31,7 +32,7 @@ def do_start_build_stuff(config, script):
     script.append(open_solution(config.solution))
     script.append(set_part(config.part_name))
     script.append(create_clock(config.clock_period))
-    script.extend(config.active_solution.directives)
+    script.extend(map(set_directive, config.active_solution.directives))
     script.extend(map(source, config.active_solution.source))
 
 

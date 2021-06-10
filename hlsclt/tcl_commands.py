@@ -26,6 +26,12 @@ def source(file):
     return "source %s" % file
 
 
+def set_directive(directive):
+    if not directive.startswith("set_directive_"):
+        directive = "set_directive_%s" % directive
+    return directive
+
+
 def open_solution(solution):
     return "open_solution %s" % solution
 
