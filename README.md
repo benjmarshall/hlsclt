@@ -21,11 +21,12 @@ Supports a command line driven development process, which increases the performa
 ```Shell
 pip install hlsclt
 ```
-Depends on [Click](https://pypi.python.org/pypi/click) which will be installed automatically by pip.
+Depends on [Click](https://pypi.python.org/pypi/click) and [pyaml](https://pypi.python.org/pypi/pyaml)
+which will be installed automatically by pip.
 
 ## Usage
 ### Quickstart
-This tool is intended to aid a command line driven development process for Vivado HLS. Whilst the tool is designed to be flexible, certain guidelines should be followed. A top level project folder should contain your HLS source files (or folders) and a 'hls_config.py' file which specifies some of the required configuration for a HLS project (device, clock speed etc).
+This tool is intended to aid a command line driven development process for Vivado HLS. Whilst the tool is designed to be flexible, certain guidelines should be followed. A top level project folder should contain your HLS source files (or folders) and a 'hls_config.yaml' file which specifies some of the required configuration for a HLS project (device, clock speed etc).
 
 A recommended directory structure is as follows:
 
@@ -35,9 +36,9 @@ A recommended directory structure is as follows:
     - dut.h
   - tb
     - testbench.cpp
-  - hls_config.py
+  - hls_config.yaml
 
-An example project structure and hls_config.py can be found in the [examples](hlsclt/examples) directory. A full guide for setting a config.py can be seen in the [Project Config](#project-configuration) section.
+An example project structure and hls_config.yaml can be found in the [examples](hlsclt/examples) directory. A full guide for setting a config.py can be seen in the [Project Config](#project-configuration) section.
 
 The tool should be invoked from within the project folder, i.e. :
 ```Shell
@@ -45,7 +46,7 @@ cd my_project_name
 hlsclt build csim
 ```
 
-The tool will read in the configuration from your 'hls_config.py' file and invoke Vivado HLS to perform the chosen build stages.
+The tool will read in the configuration from your 'hls_config.yaml' file and invoke Vivado HLS to perform the chosen build stages.
 
 All of the tools commands and options can be seen by using the '--help' argument:
 
@@ -54,14 +55,16 @@ All of the tools commands and options can be seen by using the '--help' argument
 Usage: hlsclt [OPTIONS] COMMAND [ARGS]...
 
   Helper tool for using Vivado HLS through the command line. If no arguments
-  are specified then a default run is executed which includes C simulation,
-  C synthesis, Cosimulation and export for both Vivado IP Catalog and System
-  Generator. If any of the run options are specified then only those
-  specified are performed.
+  are specified then a default run is executed which includes C simulation, C
+  synthesis, Cosimulation and export for both Vivado IP Catalog and System
+  Generator. If any of the run options are specified then only those specified
+  are performed.
 
 Options:
-  --version  Show the version and exit.
-  --help     Show this message and exit.
+  --version                   Show the version and exit.
+  -c, --config-file FILENAME
+  -d, --debug
+  --help                      Show this message and exit.
 
 Commands:
   build     Run HLS build stages.
@@ -115,38 +118,75 @@ Options:
 ```
 
 ### Project Configuration
-Each Vivado HLS project requires a 'config.py' file in order to use hlsclt. This file contains all of the information required by Vivado HLS and hlsclt to perform build operations for your project. The file uses basic python syntax to specify the configuration in a parsable format. The full list of available configuration options is shown below:
+Each Vivado HLS project requires a 'hls_config.yaml' file in order to use hlsclt.
+This file contains all of the information required by Vivado HLS and hlsclt to perform build operations for your project.
+The file uses basic yaml syntax to specify the configuration in a parsable format.
+The full list of available configuration options is shown below:
 
-|Configuration Item | Variable Name         | Valid Options                  | Required |
-|-------------------|-----------------------|--------------------------------|----------|
-|Project Name       |project_name           |Any valid directory name        |No (Default is name of the containing project folder prepended with 'proj_')       |
-|Function Name      |top_level_function_name|String which match function name|Yes       |
-|Source Files Dir   |src_dir_name           |Name of directory where source files are located, relative to the project folder|No (Default is 'src')|
-|Testbench Files Dir|tb_dir_name            |Name of directory where testbench files are located, relative to the project folder|No (Default is 'tb')|
-|Source Files       |src_files              |A list of source files required, located within the Source Files directory|Yes|
-|Testbench Files    |tb_files               |A list of testbench files required, located within the Testbench Files directory|Yes|
-|Device String      |part_name              |A device string as used by Vivado HLS (see examples)|Yes|
-|Clock Period       |clock_period           |A value in nanoseconds input as a string, e.g. "10"|Yes|
-|HDL Language       |language               |Either "vhdl" or "verilog"      |No (Default is "vhdl")|
-|Compiler           |Compiler               |Either "gcc" or "clang"         |No (HLS defaults to gcc)|
-|Compiler Options   |cflags                 |Any flag for GCC (e.g. --std=c++11)|No|
+|Configuration Item  | Variable Name          | Valid Options                                                                      | Required                                                                    |
+|--------------------|------------------------|------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| Project Name       | project_name           | Any valid directory name                                                           | No (Default is name of the containing project folder prepended with 'proj_')|
+| Function Name      | top_level_function_name| String which match function name                                                   | Yes                                                                         |
+| Source Files Dir   | src_dir_name           | Name of directory where source files are located, relative to the project folder   | No (Default is 'src')                                                       |
+| Testbench Files Dir| tb_dir_name            | Name of directory where testbench files are located, relative to the project folder| No (Default is 'tb')                                                        |
+| Source Files       | src_files              | A list of source files required, located within the Source Files directory         | Yes                                                                         |
+| Testbench Files    | tb_files               | A list of testbench files required, located within the Testbench Files directory   | Yes                                                                         |
+| Device String      | part_name              | A device string as used by Vivado HLS (see examples)                               | Yes                                                                         |
+| Clock Period       | clock_period           | A value in nanoseconds input as a string, e.g. "10"                                | Yes                                                                         |
+| HDL Language       | language               | Either "vhdl" or "verilog"                                                         | No (Default is 'vhdl')                                                      |
+| Compiler           | Compiler               | Either "gcc" or "clang"                                                            | No (HLS defaults to gcc)                                                    |
+| Compiler Options   | cflags                 | Any flag for GCC (e.g. --std=c++11)                                                | No                                                                          |
+| Testbench Options  | tb_cflags              | Any flag for GCC (e.g. --std=c++11)                                                | No                                                                          |
+| Active Solution    | solution               | Any valid directory name                                                           | No (Default is 'sol_default')                                               |
+| All Solutions      | solutions              | List of solution specific configurations (See next table)                          | No                                                                          |
+
+#### Solution Specific Configuration
+
+|Configuration Item  | Variable Name          | Valid Options                                                                      | Required                                        |
+|--------------------|------------------------|------------------------------------------------------------------------------------|-------------------------------------------------|
+| Solution Name      | name                   | Any valid directory name                                                           | No (Default 'sol_default')                      |
+| Function Name      | top_level_function_name| String which match function name                                                   | No (Default to projects top_level_function_name)|
+| Source Files       | src_files              | A list additional of source files required                                         | No                                              |
+| Testbench Files    | tb_files               | A list additional of testbench files required                                      | No                                              |
+| directives         | directives             | A list of hls directives, `set_directive_` is prepended automatically              | No                                              |
+| Additional Scripts | source                 | A list of tcl scripts that will be include                                         | No                                              |
+
+> Note: In order to pass a cflag to only one source or testbench file specify it as an object like:
+> ```yaml
+> src_files:
+>   - path: src/my_file.cpp
+>     cflags: -Wall
+>   - ...
+> ```
 
 
-Here is an example file taken from the [simple_adder](hlsclt/examples/simple_adder) example shipped with the tool (note that some of the optional items have been commented out in order to use the defaults):
 
-```python
+Here is an example file taken from the [simple_adder](hlsclt/examples/simple_adder) example shipped with the tool
+
+```yaml
 # Config file for Simple Adder Vivado HLS project
 
-#project_name = "optional_project_name_here"
-top_level_function_name = "simple_adder"
-#src_dir_name = "src"
-#tb_dir_name = "tb"
-# cflags = ""
-src_files = ["dut.h","dut.cpp"]
-tb_files = ["testbench.cpp"]
-part_name = "xc7z020clg484-1"
-clock_period = "10"
-language = "vhdl"
+project_name: proj_simple_adder
+top_level_function_name: simple_adder
+part_name: xc7z020clg484-1
+clock_period: 10
+language: vhdl
+src_dir_name: ""
+tb_dir_name: ""
+src_files:
+  - dut.h
+  - dut.cpp
+
+tb_files:
+  - path: testbench.cpp
+    cflags: -Wno-unknown-pragmas
+solution: sol_pipelined
+solutions:
+  - name: sol_default
+
+  - name: sol_pipelined
+    directives:
+      - pipeline simple_adder
 ```
 
 ## License
