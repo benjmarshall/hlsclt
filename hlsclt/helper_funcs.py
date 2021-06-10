@@ -102,9 +102,13 @@ def parse_solution():
         "tb_files":
             parse_one_of(parse_source_list(), parse_default([])),
         "directives":
-            parse_one_of(parse_list(parse_string), parse_default([])),
+            parse_one_of(parse_and_map(parse_string, list),
+                         parse_list(parse_string),
+                         parse_default([])),
         "source":
-            parse_one_of(parse_list(parse_string), parse_default([])),
+            parse_one_of(parse_and_map(parse_string, list),
+                         parse_list(parse_string),
+                         parse_default([])),
     })
 
 

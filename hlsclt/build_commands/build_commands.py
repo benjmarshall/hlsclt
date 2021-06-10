@@ -32,7 +32,7 @@ def do_start_build_stuff(config, script):
     script.append(set_part(config.part_name))
     script.append(create_clock(config.clock_period))
     script.extend(config.active_solution.directives)
-    script.extend(map(source, config.active_solution.directives))
+    script.extend(map(source, config.active_solution.source))
 
 
 # Function to write a default build into the HLS Tcl build script.
