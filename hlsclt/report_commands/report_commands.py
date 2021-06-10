@@ -43,9 +43,10 @@ def open_report(config, report):
                        report_files)
 
     for file in report_files:
-        return_val = subprocess.call(['xdg-open', file],
-                                     stdout=open("/dev/null", "w"),
-                                     stderr=open("/dev/null", "w"))
+        with open(os.devnull, "w") as DEVNULL:
+            return_val = subprocess.call(['xdg-open', file],
+                                         stdout=DEVNULL,
+                                         stderr=DEVNULL)
         if return_val != 0:
             click.echo(("Error: Looks like the %s report doesn't exist"
                         + "for project: %s, solution: %s. "
