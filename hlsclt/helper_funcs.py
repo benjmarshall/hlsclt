@@ -9,7 +9,7 @@ from pyaml import yaml
 from glob import glob
 from .classes import Error
 from .config import parse_and_map, parse_one_of, parse_choice, parse_default
-from .config import parse_int, parse_list, parse_string, parse_const, parse_dict
+from .config import parse_int, parse_list, parse_string, parse_const, parse_obj
 
 
 def load_config(file):
@@ -17,19 +17,26 @@ def load_config(file):
     Function to load the configuration from a file.
     """
     config_file = read_config_file(file)
-    parsed = get_config_parser()(file.name, config_file)
+    config = get_config_parser()(file.name, config_file)
     # Context sensitive analysis
-    if isinstance(parsed, Error):
-        raise parsed
-    return parsed
+    if isinstance(config, Error):
+        raise config
+    for file in config.src_files:
+        file.path = os.path.join(config.src_dir_name, file.path)
+    for file in config.tb_files:
+        file.path = os.path.join(config.tb_dir_name, file.path)
+    del config.tb_dir_name
+    return config
 
 
 def get_config_parser():
     def parse_source_list():
         def add_empty_flags(path):
-            return {'path': path, 'cflags': ""}
+            return parse_obj({'path': parse_string,
+                              'cflags': parse_const('')})('', {'path': path,
+                                                               'cflags': ""})
         simple_source_file = parse_and_map(parse_string, add_empty_flags)
-        source_and_flags = parse_dict({
+        source_and_flags = parse_obj({
             'path': parse_string,
             'cflags': parse_one_of(parse_string, parse_const(""))
         })
@@ -37,25 +44,36 @@ def get_config_parser():
 
     default_proj_name = parse_default("proj_%s" % os.path.relpath(".", ".."))
 
-    return parse_dict({
-        "project_name": parse_one_of(parse_string,
-                                     default_proj_name),
-        "top_level_function_name": parse_string,
-        "src_dir_name": parse_one_of(parse_string,
-                                     parse_default("src/")),
-        "tb_dir_name": parse_one_of(parse_string,
-                                    parse_default("tb/")),
-        "src_files": parse_one_of(parse_source_list(),
-                                  parse_default([])),
-        "tb_files": parse_one_of(parse_source_list(),
-                                 parse_default([])),
-        "compiler": parse_one_of(parse_choice("gcc", "clang"),
-                                 parse_default("gcc")),
-        "part_name": parse_string,
-        "clock_period": parse_int,
-        "language": parse_one_of(parse_choice("vhdl", "verilog"),
-                                 parse_default("vhdl")),
+    return parse_obj({
+        "project_name":
+            parse_one_of(parse_string, default_proj_name),
+        "top_level_function_name":
+            parse_string,
+        "src_dir_name":
+            parse_one_of(parse_string, parse_default("src/")),
+        "tb_dir_name":
+            parse_one_of(parse_string, parse_default("tb/")),
+        "src_files":
+            parse_one_of(parse_source_list(), parse_default([])),
+        "tb_files":
+            parse_one_of(parse_source_list(), parse_default([])),
+        "compiler":
+            parse_one_of(parse_choice("gcc", "clang"), parse_default("gcc")),
+        "cflags":
+            parse_one_of(parse_string, parse_default("")),
+        "tb_cflags":
+            parse_one_of(parse_string, parse_default("-Wno-unknown-pragmas")),
+        "part_name":
+            parse_string,
+        "clock_period":
+            parse_int,
+        "language":
+            parse_one_of(parse_choice("vhdl", "verilog"),
+                         parse_default("vhdl")),
+        "solution":
+            parse_one_of(parse_string, parse_default("sol_default"))
     })
+
 
 def read_config_file(file):
     """

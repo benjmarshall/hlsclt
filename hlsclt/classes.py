@@ -33,10 +33,8 @@ class ConfigError(Errors):
 
 # Class to hold application specific info within the Click context.
 class hlsclt_internal_object(object):
-    def __init__(self, config={}, debug=False, solution_num=1,
-                 file=None, syn_command_present=False):
+    def __init__(self, config={}, debug=False, syn_command_present=False):
         self.debug = debug
         self.config = config
-        self.solution_num = solution_num
-        self.file = file
+        self.script = []
         self.syn_command_present = syn_command_present

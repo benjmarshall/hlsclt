@@ -1,4 +1,5 @@
 from .classes import Error, Errors
+from types import SimpleNamespace
 
 
 def parse_const(const):
@@ -8,7 +9,7 @@ def parse_const(const):
 
 
 # Similar to parse_const, but fails if a non None value is given
-# Useful for setting default with parse_one_of in parse_dict
+# Useful for setting default with parse_one_of in parse_obj
 def parse_default(default):
     def _parse_const(key, value):
         if value is None:
@@ -55,8 +56,8 @@ def parse_list(of):
 # give a dict of keys and their respective parser function
 # a missing key is treated as None, but missing key is
 # reported on fail
-def parse_dict(keys):
-    def _parse_dict(key, value):
+def parse_obj(keys):
+    def _parse_obj(key, value):
         parsed = {}
         errors = []
         if isinstance(value, dict):
@@ -77,8 +78,8 @@ def parse_dict(keys):
                          % (key, type(value).__name__))
         if errors:
             return Errors(errors)
-        return parsed
-    return _parse_dict
+        return SimpleNamespace(**parsed)
+    return _parse_obj
 
 
 def parse_choice(*choices):
@@ -183,10 +184,10 @@ if __name__ == "__main__":
     _assert(is_error(parse_list(parse_string)("", 42)))
     _assert(is_error(parse_list(parse_string)("", ["halo", {}])))
 
-    # parse_dict
+    # parse_obj
     # Contract: apply parser of key to value of key in passed value,
     # if any fail return the errors
 
-    _assert(parse_dict({'x': parse_int})("", {'x': 42}) == {'x': 42})
-    _assert(is_error(parse_dict({'x': parse_string})("", {'x': 42})))
-    _assert(is_error(parse_dict({'x': parse_string})("", {})))
+    _assert(vars(parse_obj({'x': parse_int})("", {'x': 42})) == {'x': 42})
+    _assert(is_error(parse_obj({'x': parse_string})("", {'x': 42})))
+    _assert(is_error(parse_obj({'x': parse_string})("", {})))
