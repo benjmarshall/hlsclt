@@ -24,6 +24,15 @@ pip install hlsclt
 Depends on [Click](https://pypi.python.org/pypi/click) and [pyaml](https://pypi.python.org/pypi/pyaml)
 which will be installed automatically by pip.
 
+### Shell Completion
+In order to use [Clicks Shell Completion](https://click.palletsprojects.com/en/8.0.x/shell-completion/) feature,
+locate the directory for completions of your shell. (zsh user may choose on of `$fpath`).
+Then execute the following (replace `${some_comp_dir}` with the one of your shell):
+```shell
+_HLSCLT_COMPLETE=${SHELL}_source hlsclt > ${some_comp_dir}/_hlsclt
+chmod +x ${some_comp_dir}/_hlsclt
+```
+
 ## Usage
 ### Quickstart
 This tool is intended to aid a command line driven development process for Vivado HLS. Whilst the tool is designed to be flexible, certain guidelines should be followed. A top level project folder should contain your HLS source files (or folders) and a 'hls_config.yaml' file which specifies some of the required configuration for a HLS project (device, clock speed etc).
