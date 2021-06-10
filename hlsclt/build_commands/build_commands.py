@@ -27,7 +27,7 @@ def do_start_build_stuff(config, script):
                             cflags=config.cflags))
     script.extend(add_files(config.tb_files,
                             cflags=config.tb_cflags, is_tb=True))
-    script.extend(add_files(config.src_files,
+    script.extend(add_files(config.active_solution.src_files,
                             cflags=config.cflags))
     script.extend(add_files(config.active_solution.tb_files,
                             cflags=config.tb_cflags, is_tb=True))
