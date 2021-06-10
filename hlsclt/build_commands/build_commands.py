@@ -88,18 +88,16 @@ def syn_lookahead_check(config, script, syn_command_present):
 
 
 # Function which defines the actions that occur after a HLS build.
-def do_end_build_stuff(ctx, sub_command_returns, report):
+def do_end_build_stuff(config, script, sub_command_returns, report):
     # Copy the src/ files as well as the config file
     # to keep track of the changes over solutions
-    config = ctx.obj.config
     click.echo("Copying the source and config files to solution: %s" %
                config.solution)
     destiny = os.path.join(config.project_name, config.solution)
     destiny_src = os.path.join(destiny, "src")
 
     # If we are overwriting an existing solution delete the source directory
-    if ctx.params['keep'] == 0:
-        shutil.rmtree(destiny_src, ignore_errors=True)
+    shutil.rmtree(destiny_src, ignore_errors=True)
     shutil.copytree("src", destiny_src)
 
     # Check for reporting flag

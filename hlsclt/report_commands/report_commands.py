@@ -13,8 +13,7 @@ from hlsclt.helper_funcs import list_solutions
 
 # Supporting Function
 # Function to check if project exists
-def check_for_project(ctx):
-    config = ctx.obj.config
+def check_for_project(config):
     if not os.path.isdir(config.project_name):
         click.echo("Error: Can't find a project folder"
                    + "have you run a build process yet?")
@@ -22,8 +21,7 @@ def check_for_project(ctx):
 
 
 # Function for opening reports.
-def open_report(ctx, report):
-    config = ctx.obj.config
+def open_report(config, report):
     sol_path = os.path.join(config.project_name, config.solution)
     report_files = []
     if report == 'csim':
@@ -46,8 +44,9 @@ def open_report(ctx, report):
                        report_files)
 
     for file in report_files:
-        return_val = subprocess.call('xdg-open' + 'file',
-                                     stdout=os.devnull, stderr=os.devnull)
+        return_val = subprocess.call(['xdg-open', file],
+                                     stdout=open("/dev/null", "w"),
+                                     stderr=open("/dev/null", "w"))
         if return_val != 0:
             click.echo(("Error: Looks like the %s report doesn't exist"
                         + "for project: %s, solution: %s. "
@@ -56,14 +55,12 @@ def open_report(ctx, report):
 
 
 # Function for opening the HLS GUI
-def open_project_in_gui(ctx):
-    config = ctx.obj.config
+def open_project_in_gui(config):
     subprocess.Popen(["vivado_hls", "-p", config.project_name])
 
 
 # Function for gathering the project status
-def gather_project_status(ctx):
-    config = ctx.obj.config
+def gather_project_status(config):
     project_status = []
     # Pull details from csim report
     try:
@@ -91,14 +88,14 @@ def gather_project_status(ctx):
         project_status.append('syn_done')
     # Pull details from cosim report
     csm_path = os.path.join(config.project_name, config.solution,
-                            "cosim", "report",
-                            "%s_csynth.rpt" % config.top_level_function_name)
+                            "sim", "report",
+                            "%s_cosim.rpt" % config.top_level_function_name)
     try:
         with click.open_file(csm_path) as f:
             # search through cosim report to find out pass/fail status
             # for each language
             for line in f:
-                if config["language"] in line.lower():
+                if config.language in line.lower():
                     if "pass" in line.lower():
                         project_status.append('cosim_pass')
                     elif "fail" in line.lower():
@@ -107,8 +104,6 @@ def gather_project_status(ctx):
         f.close()
     except (OSError, IOError):
         pass
-    except Exception:
-        pass
     # Pull details from implementation directory,
     # first the presence of an export...
     iip_path = os.path.join(config.project_name, config.solution,
@@ -116,7 +111,7 @@ def gather_project_status(ctx):
     if os.path.isdir(iip_path):
         project_status.append('export_ip_done')
     isg_path = os.path.join(config.project_name, config.solution,
-                            "cosim", "report")
+                            "impl", "sysgen")
     if os.path.isdir(isg_path):
         project_status.append('export_sysgen_done')
     # ... then the presence of a Vivado evaluate run
@@ -129,9 +124,8 @@ def gather_project_status(ctx):
 
 
 # Function for printing out the project status
-def print_project_status(ctx, stats):
-    config = ctx.obj.config
-    project_status = gather_project_status(ctx)
+def print_project_status(config, stats):
+    project_status = gather_project_status(config)
     # Print out a 'pretty' message showing project status,
     # first up some project details
     click.secho("Project Details", bold=True)
@@ -169,14 +163,15 @@ def print_project_status(ctx, stats):
     # Provide a stats summary of obtained accross solutions
     def csm_path(solution):
         return os.path.join(config.project_name, solution,
-                            "cosim", "report",
+                            "syn", "report",
                             "%s_csynth.rpt" % config.top_level_function_name)
     if stats:
         click.secho("Solutions", bold=True)
-        for solution in list_solutions:
+        click.echo(list_solutions(config.project_name))
+        for solution in list_solutions(config.project_name):
             # Fetch the information directly from the report, if possible
             try:
-                with click.open_file(csm_path) as f:
+                with click.open_file(csm_path(solution)) as f:
                     click.echo(click.style("  Solution ", fg="magenta")
                                + "%s :" % solution)
                     report_content = f.readlines()
@@ -231,8 +226,8 @@ def print_project_status(ctx, stats):
                     # else:
                     #     project_status.append("csim_done")
                 f.close()
-            except IOError:
-                pass
+            except IOError as e:
+                click.echo(e, err=True)
 
 
 # Click Command Definitions
@@ -245,9 +240,9 @@ def print_project_status(ctx, stats):
 @click.pass_context
 def report(ctx, stage):
     """Opens the Vivado HLS report for the chosen build stages."""
-    check_for_project(ctx)
+    check_for_project(ctx.obj.config)
     for report in stage:
-        open_report(ctx, report)
+        open_report(ctx.obj.config, report)
 
 
 @click.command('open_gui',
@@ -255,8 +250,8 @@ def report(ctx, stage):
 @click.pass_context
 def open_gui(ctx):
     """Opens the Vivado HLS GUI and loads the project."""
-    check_for_project(ctx)
-    open_project_in_gui(ctx)
+    check_for_project(ctx.obj.config)
+    open_project_in_gui(ctx.obj.config)
 
 
 @click.command('status', short_help='Print out the current project status.')
@@ -265,5 +260,5 @@ def open_gui(ctx):
 @click.pass_context
 def status(ctx, stats):
     """Prints out a message detailing the current project status."""
-    check_for_project(ctx)
-    print_project_status(ctx, stats)
+    check_for_project(ctx.obj.config)
+    print_project_status(ctx.obj.config, stats)

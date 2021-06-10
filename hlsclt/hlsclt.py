@@ -16,7 +16,7 @@ from .report_commands import report_commands
 # Main Click Entry Point
 @click.group()
 @click.version_option(version=__version__)
-@click.option('-c', '--config-file', 'config_file', show_default=True,
+@click.option('-c', '--config-file', 'config_file',
               default="hls_config.yaml", type=click.File('r'))
 @click.option('-d', '--debug', 'debug', default=False, is_flag=True)
 @click.pass_context
