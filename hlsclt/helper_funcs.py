@@ -90,21 +90,17 @@ def read_config_file(file):
                     + "folder within the hlsclt install directory.")
 
 
-# Function to find the highest solution number within a HLS project.
-def find_solution_num(ctx):
-    config = ctx.obj.config
-    # Seach for solution folders
-    paths = glob(config["project_name"] + "/solution*/")
-    solution_num = len(paths)
-    # First solution is always 1.
-    if solution_num == 0:
-        solution_num = 1;
-    else:
-        # Only if this isn't the first solution
-        # If keep argument is specified we are starting a new solution.
-        try:
-            if ctx.params["keep"]:
-                solution_num = solution_num + 1
-        except KeyError:
-            pass
-    return solution_num
+# List all solution of the project
+def list_solutions(project_name):
+    p = project_name
+    paths = filter(lambda f: os.path.isdir(os.path.join(p, f)), os.listdir(p))
+    return list(paths)
+
+
+def create_solution(project_name, solution):
+    path = project_name
+    if not os.path.exists(path):
+        os.mkdir(path)
+    path = os.path.join(path, solution)
+    if not os.path.exists(path):
+        os.mkdir(path)

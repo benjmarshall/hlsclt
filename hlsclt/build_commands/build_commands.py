@@ -8,6 +8,7 @@ import click
 import subprocess
 import os
 from hlsclt.report_commands.report_commands import open_report
+from hlsclt.helper_funcs import create_solution
 import shutil
 from hlsclt.tcl_commands import open_project, open_solution, set_top, add_files
 from hlsclt.tcl_commands import set_part, create_clock, cosim_design, exit
@@ -16,10 +17,7 @@ from hlsclt.tcl_commands import export_design, csim_design, csynth_design
 
 # Supporting Functions
 # Function to generate the 'pre-amble' within the HLS Tcl build script.
-def do_start_build_stuff(ctx):
-
-    config = ctx.obj.config
-    script = ctx.obj.script
+def do_start_build_stuff(config, script):
     script.append(open_project(config.project_name))
     script.append(set_top(config.top_level_function_name))
     script.extend(add_files(config.src_files,
@@ -32,9 +30,7 @@ def do_start_build_stuff(ctx):
 
 
 # Function to write a default build into the HLS Tcl build script.
-def do_default_build(ctx):
-    config = ctx.obj.config
-    script = ctx.obj.script
+def do_default_build(config, script):
     script.append(csim_design(config.compiler))
     script.append(csynth_design())
     script.append(cosim_design(config.language))
@@ -43,31 +39,23 @@ def do_default_build(ctx):
 
 
 # Function which defines the main actions of the 'csim' command.
-def do_csim_stuff(ctx):
-    config = ctx.obj.config
-    script = ctx.obj.script
+def do_csim_stuff(config, script):
     script.append(csim_design(config.compiler))
 
 
 # Function which defines the main actions of the 'syn' command.
-def do_syn_stuff(ctx):
-    config = ctx.obj.config
-    script = ctx.obj.script
+def do_syn_stuff(config, script):
     script.append(csynth_design(config.compiler))
 
 
 # Function which defines the main actions of the 'cosim' command.
-def do_cosim_stuff(ctx, debug):
-    config = ctx.obj.config
-    script = ctx.obj.script
+def do_cosim_stuff(config, script, debug):
     trace_level = "all" if debug else ""
     script.append(cosim_design(config.language, trace_level))
 
 
 # Function which defines the main actions of the 'export' command.
-def do_export_stuff(ctx, type, evaluate):
-    config = ctx.obj.config
-    script = ctx.obj.script
+def do_export_stuff(config, script, type, evaluate):
     evaluate = config.language if evaluate else ""
     if "ip" in type:
         script.append(export_design(format="ip", evaluate=evaluate))
@@ -84,13 +72,11 @@ def check_for_syn_results(proj_name, solution_num, top_level_function_name):
 
 # Function to check is C synthesis is going to be required
 # but may have been forgorgotten by the user.
-def syn_lookahead_check(ctx):
-    config = ctx.obj.config
-    script = ctx.obj.script
+def syn_lookahead_check(config, script, syn_command_present):
     syn_result = check_for_syn_results(config.project_name,
                                        config.solution,
                                        config.top_level_function_name)
-    if not (ctx.obj.syn_command_present or syn_result):
+    if not (syn_command_present or syn_result):
         if click.confirm("C Synthesis has not yet been run, "
                          + "but is required for the process(es)"
                          + "you have selected.\nWould you like to add"
@@ -135,7 +121,8 @@ def do_end_build_stuff(ctx, sub_command_returns, report):
 @click.pass_context
 def build(ctx, report):
     """Runs the Vivado HLS tool and executes the specified build stages."""
-    do_start_build_stuff(ctx)
+    create_solution(ctx.obj.config.project_name, ctx.obj.config.solution)
+    do_start_build_stuff(ctx.obj.config, ctx.obj.script)
 
 
 # Callback which executes when all specified build subcommands finished.
@@ -147,7 +134,7 @@ def build_end_callback(ctx, sub_command_returns, report):
         if click.confirm("No build stages specified,"
                          + "would you like to run a default sequence"
                          + "using all the build stages?", abort=True):
-            do_default_build(ctx)
+            do_default_build(ctx.obj.config, ctx.obj.script)
 
     # Write the script to file
     config = ctx.obj.config
@@ -172,7 +159,8 @@ def build_end_callback(ctx, sub_command_returns, report):
                    + "skipping report opening!")
         raise click.Abort()
     else:
-        do_end_build_stuff(ctx, sub_command_returns, report)
+        do_end_build_stuff(ctx.obj.config, ctx.obj.script,
+                           sub_command_returns, report)
 
 
 # csim subcommand
@@ -180,7 +168,8 @@ def build_end_callback(ctx, sub_command_returns, report):
 @click.pass_context
 def csim(ctx):
     """Runs the Vivado HLS C simulation stage."""
-    do_csim_stuff(ctx)
+    config = ctx.obj.config
+    do_csim_stuff(config, ctx.obj.script)
     return 'csim'
 
 
@@ -189,7 +178,7 @@ def csim(ctx):
 @click.pass_context
 def syn(ctx):
     """Runs the Vivado HLS C synthesis stage."""
-    do_syn_stuff(ctx)
+    do_syn_stuff(ctx.config, ctx.script)
     ctx.obj.syn_command_present = True
     return 'syn'
 
@@ -202,8 +191,8 @@ def syn(ctx):
 @click.pass_context
 def cosim(ctx, debug):
     """Runs the Vivado HLS cosimulation stage."""
-    syn_lookahead_check(ctx)
-    do_cosim_stuff(ctx, debug)
+    syn_lookahead_check(ctx.config, ctx.script, ctx.obj.syn_command_present)
+    do_cosim_stuff(ctx.config, ctx.script, debug)
     return 'cosim'
 
 
@@ -219,6 +208,6 @@ def cosim(ctx, debug):
 @click.pass_context
 def export(ctx, type, evaluate):
     """Runs the Vivado HLS export stage."""
-    syn_lookahead_check(ctx)
-    do_export_stuff(ctx, type, evaluate)
+    syn_lookahead_check(ctx.config, ctx.script, ctx.obj.syn_command_present)
+    do_export_stuff(ctx.config, ctx.script, type, evaluate)
     return 'export'
