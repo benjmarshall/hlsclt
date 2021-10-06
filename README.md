@@ -155,8 +155,6 @@ The full list of available configuration options is shown below:
 |--------------------|------------------------|------------------------------------------------------------------------------------|-------------------------------------------------|
 | Solution Name      | name                   | Any valid directory name                                                           | No (Default 'sol_default')                      |
 | Function Name      | top_level_function_name| String which match function name                                                   | No (Default to projects top_level_function_name)|
-| Source Files       | src_files              | A list additional of source files required                                         | No                                              |
-| Testbench Files    | tb_files               | A list additional of testbench files required                                      | No                                              |
 | directives         | directives             | A list of hls directives, `set_directive_` is prepended automatically              | No                                              |
 | Additional Scripts | source                 | A list of tcl scripts that will be include                                         | No                                              |
 

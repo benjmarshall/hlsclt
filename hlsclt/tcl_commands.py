@@ -7,7 +7,7 @@ def option(name, value):
 
 
 def open_project(project_name, reset=True):
-    return "open_project %s%s" % (option("-reset", reset), project_name)
+    return "open_project %s" % project_name
 
 
 def set_top(top_level_function_name):

@@ -38,20 +38,7 @@ def load_config(file):
         if not solution.top_level_function_name:
             solution.top_level_function_name =\
                 config.top_level_function_name
-        if not solution.src_dir_name:
-            solution.src_dir_name = config.src_dir_name
-        if not solution.tb_dir_name:
-            solution.tb_dir_name = config.tb_dir_name
 
-        # Prepend src_dir_name and tb_dir_name
-        for file in solution.src_files:
-            file.path = os.path.join(solution.src_dir_name,
-                                     file.path)
-        for file in solution.tb_files:
-            file.path = os.path.join(solution.tb_dir_name,
-                                     file.path)
-        del solution.tb_dir_name
-        del solution.src_dir_name
     del config.tb_dir_name
     del config.src_dir_name
     return config
@@ -138,14 +125,6 @@ def parse_solution():
             parse_one_of(parse_string, parse_default("sol_default")),
         "top_level_function_name":
             parse_one_of(parse_string, parse_default(None)),
-        "src_dir_name":
-            parse_one_of(parse_string, parse_default(None)),
-        "tb_dir_name":
-            parse_one_of(parse_string, parse_default(None)),
-        "src_files":
-            parse_one_of(parse_source_list(), parse_default([])),
-        "tb_files":
-            parse_one_of(parse_source_list(), parse_default([])),
         "directives":
             parse_one_of(parse_and_map(parse_string, lambda s: [s]),
                          parse_list(parse_string),

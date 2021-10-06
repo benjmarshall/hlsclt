@@ -26,10 +26,6 @@ def do_start_build_stuff(config, script):
                             cflags=config.cflags))
     script.extend(add_files(config.tb_files,
                             cflags=config.tb_cflags, is_tb=True))
-    script.extend(add_files(config.active_solution.src_files,
-                            cflags=config.cflags))
-    script.extend(add_files(config.active_solution.tb_files,
-                            cflags=config.tb_cflags, is_tb=True))
     script.append(open_solution(config.solution))
     script.append(set_part(config.part_name))
     script.append(create_clock(config.clock_period))
