@@ -8,8 +8,8 @@ import os
 from click.shell_completion import CompletionItem
 from pyaml import yaml
 from .classes import Error, ConfigError
-from .config import parse_and_map, parse_one_of, parse_choice, parse_default
-from .config import parse_int, parse_list, parse_string, parse_const, parse_obj
+from .config import decode_and_map, decode_one_of, decode_choice, decode_default
+from .config import decode_int, decode_list, decode_string, decode_const, decode_obj
 
 
 def load_config(file):
@@ -31,7 +31,7 @@ def load_config(file):
         # The specified solution is not in the solutions list
         # append a default solution with its name
         config.solutions.append(
-            parse_solution()("", {"name": config.solution}))
+            decode_solution()("", {"name": config.solution}))
         set_active_solution(config, config.solution)
     for solution in config.solutions:
         # Inherit defaults from project
@@ -82,71 +82,71 @@ def complete_solution(ctx, param, incomplete):
 
 def get_config_parser():
 
-    default_proj_name = parse_default("proj_%s" % os.path.relpath(".", ".."))
+    default_proj_name = decode_default("proj_%s" % os.path.relpath(".", ".."))
 
-    return parse_obj({
+    return decode_obj({
         "project_name":
-            parse_one_of(parse_string, default_proj_name),
+            decode_one_of(decode_string, default_proj_name),
         "top_level_function_name":
-            parse_string,
+            decode_string,
         "src_dir_name":
-            parse_one_of(parse_string, parse_default("src/")),
+            decode_one_of(decode_string, decode_default("src/")),
         "tb_dir_name":
-            parse_one_of(parse_string, parse_default("tb/")),
+            decode_one_of(decode_string, decode_default("tb/")),
         "src_files":
-            parse_one_of(parse_source_list(), parse_default([])),
+            decode_one_of(decode_source_list(), decode_default([])),
         "tb_files":
-            parse_one_of(parse_source_list(), parse_default([])),
+            decode_one_of(decode_source_list(), decode_default([])),
         "compiler":
-            parse_one_of(parse_choice("gcc", "clang"), parse_default("gcc")),
+            decode_one_of(decode_choice("gcc", "clang"), decode_default("gcc")),
         "cflags":
-            parse_one_of(parse_string, parse_default("")),
+            decode_one_of(decode_string, decode_default("")),
         "tb_cflags":
-            parse_one_of(parse_string, parse_default("-Wno-unknown-pragmas")),
+            decode_one_of(decode_string, decode_default("-Wno-unknown-pragmas")),
         "part_name":
-            parse_string,
+            decode_string,
         "clock_period":
-            parse_int,
+            decode_int,
         "language":
-            parse_one_of(parse_choice("vhdl", "verilog"),
-                         parse_default("vhdl")),
+            decode_one_of(decode_choice("vhdl", "verilog"),
+                         decode_default("vhdl")),
         "solution":
-            parse_one_of(parse_string, parse_default("sol_default")),
+            decode_one_of(decode_string, decode_default("sol_default")),
         "solutions":
-            parse_one_of(parse_list(parse_solution()),
-                         parse_and_map(parse_const(parse_solution()("", {})),
+            decode_one_of(decode_list(decode_solution()),
+                         decode_and_map(decode_const(decode_solution()("", {})),
                                        lambda sol: [sol])),
     })
 
 
-def parse_solution():
-    return parse_obj({
+def decode_solution():
+    return decode_obj({
         "name":
-            parse_one_of(parse_string, parse_default("sol_default")),
+            decode_one_of(decode_string, decode_default("sol_default")),
         "top_level_function_name":
-            parse_one_of(parse_string, parse_default(None)),
+            decode_one_of(decode_string, decode_default(None)),
         "directives":
-            parse_one_of(parse_and_map(parse_string, lambda s: [s]),
-                         parse_list(parse_string),
-                         parse_default([])),
+            decode_one_of(decode_and_map(decode_string, lambda s: [s]),
+                         decode_list(decode_string),
+                         decode_default([])),
         "source":
-            parse_one_of(parse_and_map(parse_string, lambda s: [s]),
-                         parse_list(parse_string),
-                         parse_default([])),
+            decode_one_of(decode_and_map(decode_string, lambda s: [s]),
+                         decode_list(decode_string),
+                         decode_default([])),
     })
 
 
-def parse_source_list():
+def decode_source_list():
     def add_empty_flags(path):
-        return parse_obj({'path': parse_string,
-                          'cflags': parse_const('')})('', {'path': path,
+        return decode_obj({'path': decode_string,
+                          'cflags': decode_const('')})('', {'path': path,
                                                            'cflags': ""})
-    simple_source_file = parse_and_map(parse_string, add_empty_flags)
-    source_and_flags = parse_obj({
-        'path': parse_string,
-        'cflags': parse_one_of(parse_string, parse_const(""))
+    simple_source_file = decode_and_map(decode_string, add_empty_flags)
+    source_and_flags = decode_obj({
+        'path': decode_string,
+        'cflags': decode_one_of(decode_string, decode_const(""))
     })
-    return parse_list(parse_one_of(simple_source_file, source_and_flags))
+    return decode_list(decode_one_of(simple_source_file, source_and_flags))
 
 
 def read_config_file(file):
